@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Popwrap</title>
+<meta name="robots" content="noindex, nofollow">
+<script>window.BW_BUILD = {"platform":"web","ver":"Popwrap v1.0 · demo, ads are simulated"};</script>
+<style>
+/* Layout: a game screen on cardboard — a packing-tape HUD (menu, level, star meter, moves), a goal chip, the bubble sheet as the hero, three round power-ups; menus and results float above in a card */
+:root{
+  --kraft:#cfab7c; --kraft-fiber:rgba(92,60,24,.08);
+  --ink:#2a1f14; --ink-soft:#5e4831;
+  --tape:#cf3427; --tape-dark:#972016; --tape-ink:#fff6ec;
+  --card:#fbf8f1; --card-line:#e2d6c0; --field:#f2ebdf; --btn-shade:rgba(92,60,24,.32);
+  --sheet:rgba(236,246,255,.45); --sheet-edge:rgba(255,255,255,.7);
+  --bub-hi:#ffffff; --bub-body:rgba(208,230,247,.94); --bub-edge:rgba(92,128,165,.55); --bub-shade:rgba(66,100,136,.30);
+  --gold-body:rgba(248,214,118,.96); --gold-edge:rgba(164,112,20,.65); --gold-ink:#a86b00; --star:#f5b72c;
+  --packtape:rgba(176,124,58,.62); --packtape-line:rgba(120,80,30,.35);
+  --flat:rgba(96,118,140,.34);
+  --big-body:rgba(204,236,224,.95); --big-edge:rgba(40,132,104,.6); --big-glow:rgba(40,132,104,.2); --gap:rgba(255,255,255,.6);
+  --accent:#1d5c9b; --ok:#2f7d4f;
+  --shadow:rgba(40,24,8,.22); --overlay:rgba(30,22,14,.62);
+  --ratio:.75;
+  --f-display:"ZCOOL KuaiLe","Baloo 2","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --f-num:"Baloo 2","Arial Rounded MT Bold",ui-rounded,system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --kraft:#2f261d; --kraft-fiber:rgba(255,220,170,.035);
+    --ink:#f3e7d6; --ink-soft:#c6b294;
+    --tape:#b92f25; --tape-dark:#6e1a13; --tape-ink:#fff1e6;
+    --card:#3a3027; --card-line:#58493b; --field:#2c241c; --btn-shade:rgba(0,0,0,.5);
+    --sheet:rgba(190,215,240,.08); --sheet-edge:rgba(210,230,250,.16);
+    --bub-hi:rgba(255,255,255,.92); --bub-body:rgba(150,190,226,.30); --bub-edge:rgba(190,220,250,.48); --bub-shade:rgba(0,0,0,.38);
+    --gold-body:rgba(240,196,92,.55); --gold-edge:rgba(255,214,120,.7); --gold-ink:#f2c45a; --star:#f2c45a;
+    --packtape:rgba(196,146,80,.42); --packtape-line:rgba(255,220,170,.18);
+    --flat:rgba(190,210,230,.20);
+    --big-body:rgba(140,220,190,.32); --big-edge:rgba(150,230,200,.62); --big-glow:rgba(150,230,200,.16); --gap:rgba(20,16,12,.55);
+    --accent:#86bcef; --ok:#7fd3a0;
+    --shadow:rgba(0,0,0,.45); --overlay:rgba(8,6,4,.72);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --kraft:#2f261d; --kraft-fiber:rgba(255,220,170,.035);
+  --ink:#f3e7d6; --ink-soft:#c6b294;
+  --tape:#b92f25; --tape-dark:#6e1a13; --tape-ink:#fff1e6;
+  --card:#3a3027; --card-line:#58493b; --field:#2c241c; --btn-shade:rgba(0,0,0,.5);
+  --sheet:rgba(190,215,240,.08); --sheet-edge:rgba(210,230,250,.16);
+  --bub-hi:rgba(255,255,255,.92); --bub-body:rgba(150,190,226,.30); --bub-edge:rgba(190,220,250,.48); --bub-shade:rgba(0,0,0,.38);
+  --gold-body:rgba(240,196,92,.55); --gold-edge:rgba(255,214,120,.7); --gold-ink:#f2c45a; --star:#f2c45a;
+  --packtape:rgba(196,146,80,.42); --packtape-line:rgba(255,220,170,.18);
+  --flat:rgba(190,210,230,.20);
+  --big-body:rgba(140,220,190,.32); --big-edge:rgba(150,230,200,.62); --big-glow:rgba(150,230,200,.16); --gap:rgba(20,16,12,.55);
+  --accent:#86bcef; --ok:#7fd3a0;
+  --shadow:rgba(0,0,0,.45); --overlay:rgba(8,6,4,.72);
+  color-scheme:dark;
+}
+:root[lang^="en"]{--f-display:"Baloo 2","Arial Rounded MT Bold",ui-rounded,system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%; overscroll-behavior:none}
+body{
+  margin:0; color:var(--ink); font:15px/1.5 var(--f-body);
+  background-color:var(--kraft);
+  background-image:repeating-linear-gradient(87deg,var(--kraft-fiber) 0 1px,transparent 1px 7px),repeating-linear-gradient(-4deg,var(--kraft-fiber) 0 1px,transparent 1px 11px);
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  overflow-x:hidden; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;
+}
+/* --pill：平台在左上角盖了自己的按钮时（Poki 手机版），竖屏把整列往下让出这么多 */
+.app{max-width:480px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; gap:10px; padding-block:calc(10px + var(--pill, 0px)) 12px}
+svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; flex:none}
+
+/* HUD: a strip of red packing tape */
+.hud{display:flex; align-items:center; gap:10px; background:var(--tape); color:var(--tape-ink); padding:8px 12px 9px; border-radius:10px; transform:rotate(-.6deg); box-shadow:0 4px 0 var(--tape-dark);
+  background-image:repeating-linear-gradient(90deg,transparent 0 14px,rgba(255,255,255,.05) 14px 15px)}
+.hud-btn{appearance:none; border:0; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.18); color:inherit; display:grid; place-items:center; font-size:20px; cursor:pointer; flex:none}
+.hud-btn:active{transform:scale(.92)}
+.hud-title{display:flex; flex-direction:column; align-items:center; line-height:1; min-width:44px; flex:none}
+.hud-title small{font:700 10px/1 var(--f-body); letter-spacing:.12em; text-transform:uppercase; opacity:.85}
+.hud-title b{font:800 26px/1 var(--f-num); margin-top:2px; white-space:nowrap}
+.meter{position:relative; flex:1; min-width:0; height:20px; border-radius:999px; background:rgba(0,0,0,.24); box-shadow:inset 0 2px 0 rgba(0,0,0,.18)}
+.meter-fill{position:absolute; inset:0 auto 0 0; width:0; border-radius:999px; background:var(--star); transition:width .25s ease-out}
+.meter-mark{position:absolute; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; display:grid; place-items:center; font-size:22px; line-height:1; color:rgba(90,20,10,.35); -webkit-text-stroke:1.5px rgba(255,255,255,.85)}
+.meter-mark.goal{font-size:17px}
+.meter-mark.lit{color:#ffd23f; -webkit-text-stroke:1px #8a4b00; text-shadow:0 0 8px rgba(255,214,90,.8)}
+.meter-mark.flash{animation:starpop .5s ease-out}
+.meter-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:flex-start; padding-left:3px; font:800 13px/1 var(--f-num); letter-spacing:.02em; font-variant-numeric:tabular-nums; pointer-events:none}
+.meter-label span{background:rgba(70,14,8,.62); color:#fff; border-radius:999px; padding:2px 8px 1px; min-width:28px; text-align:center}
+.moves{flex:none; width:50px; height:50px; border-radius:50%; background:var(--card); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 3px 0 var(--btn-shade),inset 0 0 0 3px var(--star); line-height:1}
+.moves b{font:800 24px/1 var(--f-num); font-variant-numeric:tabular-nums}
+.moves small{font:700 9px/1 var(--f-body); color:var(--ink-soft); letter-spacing:.08em; margin-top:1px}
+.moves.low{box-shadow:0 3px 0 var(--btn-shade),inset 0 0 0 3px var(--tape)}
+.moves.bump{animation:bump .3s ease-out}
+
+/* Goal chip row */
+.goalbar{display:flex; align-items:center; gap:8px; min-height:38px}
+.chip-goal{appearance:none; border:0; display:inline-flex; align-items:center; gap:7px; padding:7px 14px 7px 10px; border-radius:999px; background:var(--card); color:var(--ink); font:700 14px/1.1 var(--f-body); box-shadow:0 3px 0 var(--btn-shade); cursor:pointer; min-width:0}
+.chip-goal .gi{font-size:18px; color:var(--accent); display:grid; place-items:center}
+.chip-goal .gi .coin{width:16px; height:16px; border-radius:50%; background:var(--gold-body); box-shadow:inset 0 0 0 2px var(--gold-edge)}
+.chip-goal.ok{color:var(--ok)} .chip-goal.ok .gi{color:var(--ok)}
+.chip-goal span:last-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.chips{display:flex; gap:6px}
+.chip{appearance:none; border:0; background:transparent; color:var(--ink-soft); border-radius:999px; padding:6px 10px; font:700 12px var(--f-body); cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--card)}
+.goalbar .spacer{flex:1}
+.round{appearance:none; border:0; width:40px; height:40px; border-radius:50%; background:var(--card); color:var(--ink); display:grid; place-items:center; font-size:19px; box-shadow:0 3px 0 var(--btn-shade); cursor:pointer; flex:none}
+.round:active{transform:translateY(2px); box-shadow:0 1px 0 var(--btn-shade)}
+
+/* The bubble sheet */
+.stage{position:relative; width:min(100%,460px,max(200px,calc((100vh - 250px - var(--pill, 0px)) * var(--ratio)))); margin:0 auto}
+.sheet{
+  display:grid; grid-template-columns:repeat(6,1fr); gap:clamp(2px,1vw,6px); padding:clamp(8px,3vw,14px);
+  background-color:var(--sheet);
+  background-image:linear-gradient(118deg,transparent 28%,var(--sheet-edge) 42%,transparent 56%);
+  border-radius:16px; box-shadow:inset 0 0 0 1px var(--sheet-edge),0 8px 22px var(--shadow);
+  touch-action:manipulation;
+}
+.sheet.shake{animation:shake .32s ease-out}
+.sheet.shake-big{animation:shake-big .5s ease-out}
+.bubble{appearance:none; border:0; padding:0; margin:0; background:transparent; position:relative; aspect-ratio:1; cursor:pointer; touch-action:manipulation; border-radius:50%; color:inherit; font:inherit}
+.bubble::before{
+  content:""; position:absolute; inset:5%; border-radius:50%;
+  background:radial-gradient(circle at 33% 28%,var(--bub-hi) 0 10%,transparent 11.5%),radial-gradient(circle at 62% 70%,transparent 0 46%,var(--bub-shade) 74%),var(--bub-body);
+  box-shadow:inset 0 0 0 1.5px var(--bub-edge),0 2px 3px var(--shadow);
+  transform:scale(var(--s,1)); transition:transform .16s cubic-bezier(.3,1.7,.5,1),opacity .16s;
+}
+.bubble::after{content:""; position:absolute; inset:8%; border-radius:50%; pointer-events:none; opacity:0}
+.lv1{--s:.64} .lv1::before{opacity:.75}
+.lv2{--s:.82}
+.lv3{--s:1}
+.lv3::before{animation:wobble 1.7s ease-in-out infinite; animation-delay:var(--d,0s)}
+.gold::before{background:radial-gradient(circle at 33% 28%,var(--bub-hi) 0 10%,transparent 11.5%),radial-gradient(circle at 62% 70%,transparent 0 46%,var(--bub-shade) 78%),var(--gold-body); box-shadow:inset 0 0 0 2px var(--gold-edge),0 2px 4px var(--shadow)}
+.gold.lv1::before{opacity:1}
+.double::before{box-shadow:inset 0 0 0 1.5px var(--bub-edge),0 0 0 2.5px var(--gap),0 0 0 4.5px var(--bub-edge),0 2px 4px var(--shadow)}
+.double.lv1::before{opacity:1}
+.big::before{background:radial-gradient(circle at 33% 28%,var(--bub-hi) 0 10%,transparent 11.5%),radial-gradient(circle at 62% 70%,transparent 0 46%,var(--bub-shade) 78%),var(--big-body); box-shadow:inset 0 0 0 2px var(--big-edge),0 0 0 4px var(--big-glow),0 2px 4px var(--shadow)}
+.big.lv1::before{opacity:1}
+.lv0{cursor:default}
+.lv0::before{background:radial-gradient(circle at 50% 50%,transparent 0 50%,var(--flat) 54% 64%,transparent 68%); box-shadow:none; border-radius:47% 53% 44% 56%/55% 45% 55% 45%; transform:scale(.8); opacity:1}
+.lv0.got::before{background:radial-gradient(circle at 50% 50%,var(--gold-body) 0 22%,transparent 24% 50%,var(--gold-edge) 54% 62%,transparent 66%)}
+.lv0.lost::before{background:radial-gradient(circle at 50% 50%,transparent 0 50%,var(--tape) 54% 60%,transparent 64%); opacity:.55}
+.taped{cursor:default}
+.taped::before{inset:30% -3%; border-radius:1px; transform:rotate(-14deg); box-shadow:none; opacity:1;
+  background:repeating-linear-gradient(90deg,transparent 0 5px,var(--packtape-line) 5px 6px),var(--packtape)}
+.bubble.pressing::before{transform:scale(calc(var(--s,1) * .84))!important; animation:none!important; filter:brightness(.96)}
+.burst::before{animation:squash .22s ease-out}
+.burst::after{border:2px solid var(--bub-hi); animation:ring .42s ease-out}
+.burst.gold::after{border-color:var(--gold-edge)}
+.fresh::before{animation:inflate .4s cubic-bezier(.3,1.6,.5,1) backwards; animation-delay:var(--fd,0s)}
+.hint::after{opacity:1; inset:-3%; border:3px dashed var(--accent); animation:spin 4s linear infinite}
+.pumping .lv1::after,.pumping .lv2::after{opacity:1; inset:0; border:2px dotted var(--accent)}
+.bubble .n{position:absolute; inset:0; display:none; place-items:center; font:800 clamp(12px,3.6vw,16px)/1 var(--f-num); color:var(--ink)}
+.show-nums .bubble .n{display:grid}
+.bubble:focus-visible{outline:3px solid var(--accent); outline-offset:-3px}
+.frag{position:absolute; left:50%; top:50%; width:7px; height:4px; margin:-2px 0 0 -3px; border-radius:1px; background:var(--bub-edge); pointer-events:none; animation:frag .5s ease-out forwards}
+.frag.g{background:var(--gold-edge)}
+@keyframes frag{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)); opacity:0}}
+@keyframes wobble{0%,100%{transform:scale(1)}50%{transform:scale(1.04,.965)}}
+@keyframes squash{0%{transform:scale(1.18)}100%{transform:scale(.8)}}
+@keyframes ring{0%{transform:scale(.7);opacity:.95}100%{transform:scale(1.65);opacity:0}}
+@keyframes inflate{from{transform:scale(.15);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0)}80%{transform:translate(2px,1px)}}
+@keyframes shake-big{10%{transform:translate(-6px,2px) rotate(-.4deg)}25%{transform:translate(6px,-2px) rotate(.4deg)}40%{transform:translate(-5px,1px)}55%{transform:translate(4px,-1px)}70%{transform:translate(-3px,1px)}85%{transform:translate(2px,0)}}
+@keyframes bump{40%{transform:scale(1.18)}}
+@keyframes starpop{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1)}}
+
+/* Floating words over the sheet */
+.popup{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; pointer-events:none}
+.pop-text{font:400 clamp(24px,7.5vw,36px)/1 var(--f-display); color:var(--accent); background:var(--card); padding:8px 18px; border-radius:999px; box-shadow:0 6px 16px var(--shadow); animation:rise 1.1s ease-out forwards; white-space:nowrap}
+:root[lang^="en"] .pop-text{font-weight:800}
+.pop-text small{font:800 .55em var(--f-num); color:var(--ink-soft); margin-left:8px}
+.pop-text.big{font-size:clamp(32px,10vw,48px); color:var(--tape)}
+.pop-text.huge{font-size:clamp(40px,13vw,64px); color:var(--tape); background:var(--star); animation-duration:1.4s}
+.pop-text.huge small{color:var(--tape-dark)}
+.pop-text.bonus,.pop-text.gold,.pop-text.warn{font:700 14px/1 var(--f-body); padding:8px 12px}
+.pop-text.bonus{color:var(--ink)} .pop-text.gold{color:var(--gold-ink)} .pop-text.warn{color:var(--tape)}
+@keyframes rise{0%{transform:translateY(8px) scale(.7);opacity:0}15%{transform:translateY(0) scale(1.05);opacity:1}70%{opacity:1}100%{transform:translateY(-26px) scale(1);opacity:0}}
+.tip{position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); width:max-content; max-width:min(92%,360px); background:var(--card); color:var(--ink); border-radius:14px; padding:9px 13px; font-size:13.5px; line-height:1.45; box-shadow:0 6px 18px var(--shadow),0 0 0 2px var(--star); text-wrap:balance; white-space:pre-line; z-index:12; animation:tipin .3s ease-out; cursor:pointer}
+@keyframes tipin{from{opacity:0; transform:translate(-50%,10px)}}
+
+/* Power-ups */
+.tools{display:flex; justify-content:center; gap:22px; padding-top:2px}
+.tool{appearance:none; border:0; background:none; color:var(--ink); display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; font:700 12px/1 var(--f-body); padding:0}
+.tool-ic{position:relative; width:58px; height:58px; border-radius:50%; background:var(--card); display:grid; place-items:center; font-size:26px; box-shadow:0 4px 0 var(--btn-shade)}
+.tool:active .tool-ic{transform:translateY(3px); box-shadow:0 1px 0 var(--btn-shade)}
+.tool-badge{position:absolute; right:-6px; top:-6px; min-width:24px; height:24px; padding:0 5px; border-radius:999px; background:var(--star); color:#4a2f00; display:grid; place-items:center; font:800 13px/1 var(--f-num); box-shadow:0 2px 0 var(--btn-shade)}
+.tool-badge.vid{background:var(--card); font-size:14px; box-shadow:0 0 0 2px var(--star),0 2px 0 var(--btn-shade)}
+.tool.dim .tool-ic{opacity:.72}
+.tools-note{text-align:center; font-size:13px; color:var(--ink-soft); padding:14px 0}
+
+/* Floating card: results, menu, level map */
+.overlay{position:fixed; inset:0; z-index:15; background:var(--overlay); display:grid; place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px)); animation:fade .2s ease-out}
+.card:focus{outline:none}
+.card{width:min(100%,380px); max-height:100%; overflow:auto; background:var(--card); color:var(--ink); border-radius:22px; padding:22px 20px 20px; box-shadow:0 18px 40px var(--shadow); display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; animation:cardin .32s cubic-bezier(.3,1.5,.5,1); user-select:text; -webkit-user-select:text}
+@keyframes fade{from{opacity:0}}
+@keyframes cardin{from{transform:translateY(24px) scale(.94); opacity:0}}
+.card h2{margin:0; font:400 26px/1.15 var(--f-display); text-wrap:balance}
+:root[lang^="en"] .card h2{font-weight:800}
+.card p{margin:0; color:var(--ink-soft); font-size:14px; text-wrap:balance}
+.r-stars{display:flex; gap:6px; align-items:flex-end; height:58px}
+.r-star{font-size:44px; line-height:1; color:var(--card-line); transition:color .1s}
+.r-star:nth-child(2){font-size:56px}
+.r-star.on{color:var(--star); animation:stardrop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes stardrop{0%{transform:translateY(-40px) scale(1.6); opacity:0}100%{transform:none; opacity:1}}
+.stamp{border:3px solid var(--tape); color:var(--tape); border-radius:8px; padding:3px 12px; font:400 20px/1.2 var(--f-display); transform:rotate(-8deg); letter-spacing:.06em; opacity:0}
+:root[lang^="en"] .stamp{font-weight:800; text-transform:uppercase}
+.stamp.on{animation:stamp .35s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes stamp{0%{opacity:0; transform:rotate(-8deg) scale(2.2)}100%{opacity:.92; transform:rotate(-8deg) scale(1)}}
+.r-big{font:800 48px/1 var(--f-num); font-variant-numeric:tabular-nums}
+.card textarea{width:100%; resize:none; font:500 13px/1.5 var(--f-body); background:var(--field); color:var(--ink); border:1px solid var(--card-line); border-radius:10px; padding:8px 10px; text-align:left}
+.r-actions{display:flex; flex-direction:column; align-items:stretch; gap:10px; width:100%; margin-top:4px}
+.r-row{display:flex; flex-wrap:wrap; justify-content:center; gap:8px}
+.btn{appearance:none; border:0; border-radius:14px; padding:11px 16px; background:var(--field); color:var(--ink); font:700 15px/1.15 var(--f-body); box-shadow:0 4px 0 var(--btn-shade); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--btn-shade)}
+.btn.primary{background:var(--tape); color:var(--tape-ink); box-shadow:0 5px 0 var(--tape-dark); font:400 22px/1.1 var(--f-display); padding:14px 20px; border-radius:16px}
+:root[lang^="en"] .btn.primary{font-weight:800; font-size:20px}
+.btn.primary:active{box-shadow:0 1px 0 var(--tape-dark); transform:translateY(4px)}
+.btn:disabled{opacity:.45; cursor:default; transform:none}
+.btn:focus-visible,.round:focus-visible,.tool:focus-visible .tool-ic,.hud-btn:focus-visible,.chip:focus-visible,.chip-goal:focus-visible,.mode-card:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.levels{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; width:100%}
+.levels .btn{flex-direction:column; gap:2px; padding:9px 0; font:800 17px/1 var(--f-num)}
+.levels .btn small{font:700 10px/1 var(--f-body); color:var(--gold-ink); letter-spacing:1px; min-height:10px}
+.levels .btn.current{background:var(--star); color:#4a2f00}
+.levels h3{grid-column:1/-1; margin:8px 0 0; font:700 12px var(--f-body); color:var(--ink-soft); letter-spacing:.06em; text-align:left}
+.modes-list{display:flex; flex-direction:column; gap:10px; width:100%}
+.mode-card{appearance:none; border:0; display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; background:var(--field); color:var(--ink); box-shadow:0 4px 0 var(--btn-shade); cursor:pointer; text-align:left}
+.mode-card:active{transform:translateY(3px); box-shadow:0 1px 0 var(--btn-shade)}
+.mode-card.current{box-shadow:0 4px 0 var(--btn-shade),inset 0 0 0 3px var(--star)}
+.mode-card .mi{width:42px; height:42px; border-radius:12px; background:var(--tape); color:var(--tape-ink); display:grid; place-items:center; font-size:22px; flex:none}
+.mode-card b{display:block; font:400 19px/1.1 var(--f-display)}
+:root[lang^="en"] .mode-card b{font-weight:800}
+.mode-card span{font-size:12.5px; color:var(--ink-soft)}
+.settings{display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%}
+.settings .btn{font-size:14px; padding:10px 8px}
+.ver{font-size:11px; color:var(--ink-soft)}
+
+.ad{position:fixed; inset:0; z-index:20; background:var(--overlay); display:grid; place-items:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.ad-card{width:min(100%,320px); background:var(--card); border-radius:18px; padding:20px; display:flex; flex-direction:column; gap:10px; text-align:center}
+.ad-count{font:800 64px/1 var(--f-num); color:var(--tape)}
+.ad-track{height:6px; background:var(--card-line); border-radius:3px; overflow:hidden}
+#ad-bar{height:100%; width:0; background:var(--tape)}
+.ad-card p{margin:0; font-size:13px; color:var(--ink-soft)}
+
+/* 横屏（桌面网页平台的 16:9 窗口、手机横放）：左边一栏放状态栏、目标和道具，右边放整张泡泡纸，最矮要撑得住 640x360。
+   泡泡纸用绝对定位贴在右边，不参与左栏的行高计算。 */
+@media (orientation: landscape) and (min-width: 560px) and (max-height: 820px){
+  body{overflow:hidden}
+  .app{--W:min(calc((100vh - 20px) * var(--ratio)), calc(100vw - 360px)); position:relative; max-width:none; width:calc(300px + 22px + var(--W)); margin:0 auto; height:100%; min-height:0;
+    display:grid; grid-template-columns:300px; grid-template-rows:auto auto auto; align-content:center; row-gap:16px; padding-block:8px; padding-right:calc(var(--W) + 22px)}
+  body .stage{position:absolute; right:0; top:50%; transform:translateY(-50%); width:var(--W); margin:0}
+  .goalbar{flex-wrap:wrap}
+  /* 提示贴在左栏最下面，不盖住泡泡纸，也不把左栏挤得上下跳 */
+  .tip{position:absolute; left:0; bottom:8px; width:300px; max-width:none; transform:none; animation:none}
+}
+@media (orientation: landscape) and (min-width: 560px) and (max-height: 460px){
+  .app{row-gap:10px; align-content:start; padding-top:max(14px, calc(4px + var(--pill, 0px)))}
+  .tip{font-size:12.5px; line-height:1.4; padding:8px 12px}
+  .tool-ic{width:48px; height:48px; font-size:22px}
+  .tools{gap:16px}
+}
+@media (prefers-reduced-motion: reduce){
+  .lv3::before,.hint::after{animation:none}
+  .sheet.shake,.sheet.shake-big{animation:none}
+  .frag{display:none}
+  .pop-text{animation-duration:.8s}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="hud" id="hud">
+    <button class="hud-btn" id="btn-menu" type="button" aria-label="菜单"></button>
+    <div class="hud-title"><small id="hud-kicker">关</small><b id="hud-big">1</b></div>
+    <div class="meter" id="meter" role="img" aria-label="">
+      <div class="meter-fill" id="meter-fill"></div>
+      <span class="meter-mark" aria-hidden="true">★</span><span class="meter-mark" aria-hidden="true">★</span><span class="meter-mark" aria-hidden="true">★</span>
+      <span class="meter-label"><span id="meter-label">0</span></span>
+    </div>
+    <div class="moves" id="moves"><b id="moves-n">0</b><small id="moves-cap">步</small></div>
+  </header>
+
+  <div class="goalbar">
+    <button class="chip-goal" id="goal" type="button"><span class="gi" id="goal-icon" aria-hidden="true"></span><span id="goal-text"></span></button>
+    <div class="chips" id="endless-chips" hidden>
+      <button class="chip" id="ek-weekly" type="button" aria-pressed="true">本周赛</button>
+      <button class="chip" id="ek-free" type="button" aria-pressed="false">随便捏</button>
+    </div>
+    <span class="spacer"></span>
+    <button class="round" id="btn-restart" type="button" aria-label="重来"></button>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="sheet" id="sheet" aria-label="泡泡纸"></div>
+    <div class="popup" id="popup" aria-live="polite"></div>
+  </div>
+
+  <nav class="tools" id="tools">
+    <button class="tool" id="btn-hint" type="button"><span class="tool-ic"><span id="ic-hint"></span><span class="tool-badge" id="badge-hint"></span></span><span id="lbl-hint">提示</span></button>
+    <button class="tool" id="btn-undo" type="button"><span class="tool-ic"><span id="ic-undo"></span><span class="tool-badge vid" id="badge-undo" aria-hidden="true">🎬</span></span><span id="lbl-undo">撤销</span></button>
+    <button class="tool" id="btn-pump" type="button"><span class="tool-ic"><span id="ic-pump"></span><span class="tool-badge vid" id="badge-pump" aria-hidden="true">🎬</span></span><span id="lbl-pump">打气</span></button>
+  </nav>
+  <p class="tools-note" id="tools-note" hidden></p>
+  <div class="tip" id="tip" hidden></div>
+</div>
+
+<div class="overlay" id="overlay" hidden><div class="card" id="panel" role="dialog" aria-modal="true"></div></div>
+
+<div class="ad" id="ad" hidden role="dialog" aria-modal="true" aria-label="模拟广告">
+  <div class="ad-card">
+    <p><span aria-hidden="true">🎬</span> <span id="ad-kind">模拟激励视频</span></p>
+    <div class="ad-count" id="ad-count">3</div>
+    <div class="ad-track"><div id="ad-bar"></div></div>
+    <p id="ad-reason">看完获得奖励</p>
+    <p id="ad-note">真实广告约 15–30 秒，这里缩短成 3 秒</p>
+  </div>
+</div>
+
+<script src="engine.js"></script>
+<script src="levels.js"></script>
+<script>
+(() => {
+  const E = window.BW;
+  const LEVELS = window.BW_LEVELS || [];
+  const ENDLESS = { start: 10, bonus: 4, chainBonus: 12, goldPress: 1, revive: 3, nearMiss: 3 };
+  const LEVEL_REVIVE = 2, FREE_HINTS = 1;
+  // 每日一张的三颗星：高手分的 35% / 60% / 85%（原来 50/75/100 太高，大多数人 0 星）
+  const DAILY_STARS = [0.35, 0.6, 0.85];
+  // 插屏节奏（自己控频的平台，比如 Google Play、微信、抖音）：保护首次体验，宁可少放。
+  //   打开游戏 3 分钟内不弹；第 6 关解锁之前不弹（前 5 关是教学）；两条至少隔 2 分钟；看完激励视频 1 分钟内不弹；
+  //   关卡每结束 2 次才考虑一次；失败后点"重来"不弹。
+  // 平台自己控频的（Poki）不走这些规则，每个休息点都请求，由平台决定。
+  const AD_RULES = { startDelay: 180000, gap: 120000, afterRewarded: 60000, everyBreaks: 2, minLevel: 6 };
+  // 每日一张按 UTC 星期几换主题，全世界同一天同一张。
+  const DAILY_THEMES = [
+    { id: 'mix', spec: { p1: 0.27, p3: 0.36, tape: 3, gold: 2, double: 2, big: 1 } },
+    { id: 'basic', spec: { p1: 0.30, p3: 0.34 } },
+    { id: 'tape', spec: { p1: 0.27, p3: 0.37, tape: 6 } },
+    { id: 'gold', spec: { p1: 0.28, p3: 0.36, gold: 3 } },
+    { id: 'double', spec: { p1: 0.28, p3: 0.36, double: 5 } },
+    { id: 'big', spec: { p1: 0.30, p3: 0.33, big: 3 } },
+    { id: 'large', cols: 7, rows: 9, presses: 7, spec: { p1: 0.28, p3: 0.36, tape: 2, gold: 1 } },
+  ];
+
+  // ---------- 文案 ----------
+  // 游戏名：中文 啵啵纸，英文 Popwrap。改名只改这里的两处 name。
+  const I18N = {
+    zh: {
+      locale: 'zh-CN', name: '啵啵纸', ver: '原型 v0.6 · 广告为模拟',
+      aria: { menu: '菜单', restart: '重来', sheet: '泡泡纸', ad: '模拟广告', share: '成绩文字', meter: (s, m) => `分数 ${s}，目标 ${m}` },
+      hud: { level: '关卡', moves: '步', sheet: '第几张', replay: '回放' },
+      tools: { hint: '提示', undo: '撤销', pump: '打气', dailyNote: '每日一张不能用道具，保证排名公平' },
+      chipWeekly: '本周赛', chipFree: '随便捏',
+      modes: [
+        { name: '关卡', desc: '60 个包裹，一关一关拆' },
+        { name: '每日一张', desc: '今日包裹，全世界同一张纸' },
+        { name: '无尽解压', desc: '传送带一张接一张，本周比总分' }
+      ],
+      menu: { streak: (n) => `连续 ${n} 天`, title: '菜单', levels: '选关', restart: '重来这一局', sound: (on) => `声音：${on ? '开' : '关'}`, nums: (on) => `显示数字：${on ? '开' : '关'}`, lang: '语言：中文 → English', close: '继续' },
+      weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+      themes: { mix: '大杂烩', basic: '基础', tape: '胶带日', gold: '金泡泡日', double: '双层日', big: '大气泡日', large: '大纸日' },
+      chapters: ['第 1 章 · 基础', '第 2 章 · 双层泡泡', '第 3 章 · 大气泡', '第 4 章 · 大混合'],
+      chapterShort: ['基础', '双层泡泡', '大气泡', '大混合'],
+      chip: {
+        clear: (left) => `捏完整张 · 还剩 ${left}`,
+        score: (s, t) => `目标 ${t} 分`,
+        gold: (g, t) => `金泡泡 ${g}/${t}`,
+        chain: (m, t) => `一次连锁 ${m}/${t}`,
+        daily: (th, p) => `${th} · ${p} 下比总分`,
+        endless: (left) => `这张还剩 ${left}`
+      },
+      goal: {
+        clear: (g, p) => `目标：${p} 下内捏完整张`,
+        score: (g, p) => `目标：${p} 下内得到 ${g.target} 分`,
+        gold: (g, p) => `目标：${p} 下内让 ${g.target} 个金泡泡被连锁带爆`,
+        chain: (g, p) => `目标：${p} 下内打出一次 ${g.target} 连锁`
+      },
+      tips: {
+        start: '捏任意一个泡泡。被挤到鼓满的泡泡会自己爆，一路连锁下去。',
+        bigFirst: '泡泡越大，离爆越近。从大泡泡扎堆的地方下手。',
+        prime1: '先捏第一个虚线圈：它不会连锁，但会把旁边垫到鼓满。再捏第二个，一下引爆。',
+        prime2: '这次要连垫两下再引爆。跟着虚线圈捏，看引爆的为什么是个小泡泡。',
+        scoring: '连锁越长，分数涨得越快：连锁 10 个得 55 分，连锁 20 个得 210 分。',
+        leftover: '提前捏完，剩下的每一下加 30 分。',
+        tape: '新东西：胶带格。它不透气，连锁过不去。',
+        gold: '新东西：金泡泡。要被连锁带爆才算，每个加 50 分；直接捏破它就收不到了。',
+        double: '第 2 章 · 新东西：双层泡泡（带外圈的那种）。爆一次只掉外层，里面还剩一个小泡泡，能再爆一次。',
+        big: '第 3 章 · 新东西：大气泡（带光圈的那种）。它爆开时，周围 8 个格子连斜角都会鼓一级。',
+        mix: '第 4 章 · 所有泡泡都来了。双层泡泡能爆两次，大气泡往 8 个方向挤气。',
+        hasMix: '双层泡泡能爆两次，大气泡往 8 个方向挤气。',
+        hasBig: '大气泡爆开时，周围 8 个格子连斜角都会鼓一级。',
+        hasDouble: '双层泡泡爆一次只掉外层，里面的小泡泡还能再爆。',
+        hasGold: '金泡泡要靠连锁带爆，直接捏破就收不到了。',
+        generic: '连锁越长分越高。先把一片泡泡垫到鼓满，再一下引爆。'
+      },
+      replayingLevel: '解法回放中：看它先垫哪里、最后从哪里引爆。',
+      skipHint: '点一下跳过',
+      pumping: '打气：点一个不满的泡泡，给它鼓一级。',
+      dailyNote: '每天 UTC 0 点（北京时间 8 点）换新。第一次算正式成绩，不能用道具。',
+      expertReplayNote: '高手解法回放中：看它先垫哪里、再从哪里引爆。',
+      endlessNote: (c, b) => `连锁 ${c}+ 或带爆金泡泡各返还 1 下；捏完一张返还 ${b} 下起，越往后越多。`,
+      endlessFree: '随便捏：每局随机，不计排行。',
+      pop: {
+        chain: (n) => `连锁 ×${n}`, gold: (n, x) => `金泡泡 ×${n}  +${x}`, goldLost: '金泡泡被直接捏破了，收不到了',
+        longChain: '长连锁 返还 1 下', goldBack: (n) => `金泡泡 返还 ${n} 下`, sheetDone: (b) => `整张捏完 +${b} 下`,
+        early: (n, x) => `提前捏完 剩 ${n} 下 +${x}`, full: '已经鼓满了，换一个', pumped: '打气 +1', nothingUndo: '还没有可以撤销的',
+        revived: (n) => `+${n} 下，继续捏！`, undone: '已撤销上一下', hinted: '试试虚线圈那颗',
+        replay: (k, n) => `第 ${k} 下 连锁 ×${n}`, total: (s) => `共 ${s}`
+      },
+      ad: {
+        inter: '模拟插屏广告', rewarded: '模拟激励视频', interReason: '关卡之间的插屏，没有奖励', reward: (r) => '看完获得：' + r,
+        interNote: '真实插屏约 5 秒后可以关掉。开始玩 3 分钟内不弹，两次至少隔 2 分钟。', rewardedNote: '真实广告约 15–30 秒，这里缩短成 3 秒',
+        more: (n) => `再给 ${n} 下`, solution: '本关解法回放', expert: '高手解法回放', hint: '提示一个好下手的位置', undo: '撤销上一下', pump: '打气 1 次'
+      },
+      panel: {
+        stamp: '已送达', cleared: (i) => `第 ${i} 关 拆完了`, allCleared: (n) => `${n} 个包裹全部送达`, chapterDone: (c) => `${c} 完成`,
+        threeStars: (s) => `三星要 ${s} 分。试试先垫后爆，把连锁攒长。`, perfect: '三星！', nextChapter: (c) => `下一章：${c}`,
+        next: '下一个包裹', again: '再玩一次', levels: '选关', retry: '重来',
+        goldGoneTitle: '金泡泡不够了', close: (n) => `差一点！${n}`, failed: '这次没拆完',
+        goldGone: '有金泡泡被直接捏破，这关已经凑不齐了。金泡泡要靠连锁去带爆。',
+        stuck: '卡住了？看一遍解法再来，注意它先垫哪里、最后从哪里引爆。',
+        watchSolution: '看本关解法', watchAgain: '再看一遍解法',
+        near: { clear: (n) => `只剩 ${n} 个泡泡`, score: (n) => `只差 ${n} 分`, gold: (n) => `只差 ${n} 个金泡泡`, chain: (m, n) => `最长 ${m}，只差 ${n} 个` },
+        officialTitle: '今天的正式成绩', practiceTitle: '练习结束',
+        above: (d) => `比高手分还多 ${d} 分`, below: (d) => `离高手分差 ${d} 分`,
+        officialNote: '之后再玩都算练习，排名只看第一次。明天换新的一张。',
+        practiceNote: (a, b) => `正式成绩 ${a} · 练习最佳 ${b}`,
+        streak: (n) => `🔥 已连续打卡 ${n} 天${n >= 3 ? '，明天别断了' : ''}`,
+        copy: '复制成绩', copied: '已复制', selectCopy: '已选中，请手动复制',
+        watchExpert: '看高手解法', watchExpertAgain: '再看一遍高手解法', practice: '再练一次',
+        endlessClose: (n) => `差一点！只剩 ${n} 个泡泡`, outOfPresses: '按压次数用完了',
+        endlessLine: (c, m, free, b) => `捏完 ${c} 张 · 最长连锁 ${m} · ${free ? '最高' : '本周最高'} ${b}`,
+        playAgain: '再来一局',
+        pickerTitle: '选关', pickerLine: (x, y) => `已拿 ${x} / ${y} 颗星。拆完一个解锁下一个。`, closeBtn: '关闭',
+        levelAria: (i, locked, n) => `第 ${i} 关${locked ? '，未解锁' : n ? `，${n} 星` : ''}`, starsAria: (n) => `${n} 颗星`
+      },
+      share: {
+        date: (key) => { const [, m, d] = key.split('-').map(Number); return `${m}月${d}日`; },
+        daily: (name, date, th, p, s, ref, marks) => `${name} · ${date} ${th}\n${p} 下得分 ${s}（高手分 ${ref}）\n${marks}`,
+        endless: (name, title, s, c, m) => `${name} · ${title}\n得分 ${s}\n捏完 ${c} 张 · 最长连锁 ${m}`,
+        free: '随便捏', weekly: (w) => `本周赛 ${w}`, streak: (n) => `🔥 连续 ${n} 天`
+      },
+      lvName: ['已捏破', '有点瘪', '半鼓', '鼓满了'], kindName: ['泡泡', '胶带格', '金泡泡', '双层泡泡', '大气泡'],
+      goldGot: '金泡泡，已收到', goldLostAria: '金泡泡，被直接捏破了', popped: '已捏破'
+    },
+    en: {
+      locale: 'en-US', name: 'Popwrap', ver: 'Prototype v0.6 · ads are simulated',
+      aria: { menu: 'Menu', restart: 'Restart', sheet: 'Bubble sheet', ad: 'Simulated ad', share: 'Result text', meter: (s, m) => `Score ${s} of ${m}` },
+      hud: { level: 'level', moves: 'moves', sheet: 'sheet', replay: 'replay' },
+      tools: { hint: 'Hint', undo: 'Undo', pump: 'Pump', dailyNote: 'No power-ups in the daily, so the ranking stays fair' },
+      chipWeekly: 'Weekly', chipFree: 'Free play',
+      modes: [
+        { name: 'Levels', desc: '60 parcels to unwrap, one by one' },
+        { name: 'Daily', desc: 'Today\'s parcel, same sheet worldwide' },
+        { name: 'Endless', desc: 'Sheets on a conveyor, weekly high score' }
+      ],
+      menu: { streak: (n) => `${n}-day streak`, title: 'Menu', levels: 'Levels', restart: 'Restart this run', sound: (on) => `Sound: ${on ? 'on' : 'off'}`, nums: (on) => `Numbers: ${on ? 'on' : 'off'}`, lang: 'Language: English → 中文', close: 'Resume' },
+      weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      themes: { mix: 'Mix-up', basic: 'Basics', tape: 'Tape day', gold: 'Gold day', double: 'Double day', big: 'Big bubble day', large: 'Big sheet day' },
+      chapters: ['Chapter 1 · Basics', 'Chapter 2 · Double bubbles', 'Chapter 3 · Big bubbles', 'Chapter 4 · Everything'],
+      chapterShort: ['Basics', 'Double bubbles', 'Big bubbles', 'Everything'],
+      chip: {
+        clear: (left) => `Clear the sheet · ${left} left`,
+        score: (s, t) => `Score ${t}`,
+        gold: (g, t) => `Gold ${g}/${t}`,
+        chain: (m, t) => `One chain ${m}/${t}`,
+        daily: (th, p) => `${th} · best score in ${p}`,
+        endless: (left) => `${left} left on this sheet`
+      },
+      goal: {
+        clear: (g, p) => `Goal: clear the sheet in ${p} presses`,
+        score: (g, p) => `Goal: score ${g.target} in ${p} presses`,
+        gold: (g, p) => `Goal: chain-pop ${g.target} gold in ${p} presses`,
+        chain: (g, p) => `Goal: one chain of ${g.target}+ in ${p} presses`
+      },
+      tips: {
+        start: 'Tap any bubble. Bubbles squeezed full pop on their own and set off a chain.',
+        bigFirst: 'Bigger bubbles are closer to popping. Start where the big ones cluster.',
+        prime1: 'Tap the first dashed ring. It won\'t chain, but it squeezes its neighbors full. Then tap the second ring to set them all off.',
+        prime2: 'This time, prime twice before you trigger. Follow the dashed rings and notice why the trigger is a small bubble.',
+        scoring: 'Longer chains score far more: a 10-chain is worth 55, a 20-chain 210.',
+        leftover: 'Clear the sheet early and every unused press is worth 30.',
+        tape: 'New: tape. Air can\'t get through it, so chains stop there.',
+        gold: 'New: gold bubbles. They only count when a chain pops them, +50 each. Tap one yourself and it\'s lost.',
+        double: 'Chapter 2 · New: double bubbles (the ringed ones). The first pop only breaks the outer layer. The bubble inside can pop again.',
+        big: 'Chapter 3 · New: big bubbles (the glowing ones). When they pop, all 8 surrounding cells swell, diagonals included.',
+        mix: 'Chapter 4 · Everything at once. Double bubbles pop twice. Big bubbles push air in 8 directions.',
+        hasMix: 'Double bubbles pop twice. Big bubbles push air in 8 directions.',
+        hasBig: 'Big bubbles swell all 8 surrounding cells when they pop.',
+        hasDouble: 'Double bubbles lose their outer layer first. The bubble inside can pop again.',
+        hasGold: 'Gold only counts when a chain pops it. Tap it yourself and it\'s lost.',
+        generic: 'Longer chains score more. Squeeze a patch full first, then set it off.'
+      },
+      replayingLevel: 'Watching the solution: see where it primes and where it triggers.',
+      skipHint: 'Tap to skip',
+      pumping: 'Pump: tap a bubble that isn\'t full to swell it one size.',
+      dailyNote: 'New sheet every day at 00:00 UTC. Your first try is official. No power-ups.',
+      expertReplayNote: 'Watching the expert: see where it primes and where it triggers.',
+      endlessNote: (c, b) => `A ${c}+ chain or chain-popped gold: +1 press. Clearing a sheet: +${b} and rising.`,
+      endlessFree: 'Free play: random sheets, not ranked.',
+      pop: {
+        chain: (n) => `Chain ×${n}`, gold: (n, x) => `Gold ×${n}  +${x}`, goldLost: 'Gold popped by hand: it doesn\'t count',
+        longChain: 'Long chain: +1 press', goldBack: (n) => `Gold: +${n} press${n > 1 ? 'es' : ''}`, sheetDone: (b) => `Sheet cleared: +${b} presses`,
+        early: (n, x) => `Cleared early, ${n} spare: +${x}`, full: 'Already full, pick another', pumped: 'Pumped +1', nothingUndo: 'Nothing to undo yet',
+        revived: (n) => `+${n} presses. Keep going!`, undone: 'Last press undone', hinted: 'Try the dashed ring',
+        replay: (k, n) => `Press ${k}: chain ×${n}`, total: (s) => `total ${s}`
+      },
+      ad: {
+        inter: 'Simulated interstitial', rewarded: 'Simulated rewarded video', interReason: 'Between-level ad, no reward', reward: (r) => 'Reward: ' + r,
+        interNote: 'Real interstitials can be closed after about 5 s. None in the first 3 minutes, and at least 2 minutes apart.', rewardedNote: 'Real ads run 15–30 s. Shortened to 3 s here.',
+        more: (n) => `${n} more presses`, solution: 'this level\'s solution', expert: 'the expert\'s solution', hint: 'a hint for a good move', undo: 'undo your last press', pump: 'one pump'
+      },
+      panel: {
+        stamp: 'Delivered', cleared: (i) => `Parcel ${i} unwrapped`, allCleared: (n) => `All ${n} parcels delivered`, chapterDone: (c) => `${c} complete`,
+        threeStars: (s) => `3 stars needs ${s}. Prime first to build a longer chain.`, perfect: 'Three stars!', nextChapter: (c) => `Next up: ${c}`,
+        next: 'Next parcel', again: 'Play again', levels: 'Levels', retry: 'Retry',
+        goldGoneTitle: 'Not enough gold left', close: (n) => `So close! ${n}`, failed: 'Not unwrapped yet',
+        goldGone: 'A gold bubble was popped by hand, so this level can\'t be finished. Gold has to be popped by a chain.',
+        stuck: 'Stuck? Watch the solution, then try again. Note where it primes and where it triggers.',
+        watchSolution: 'Watch solution', watchAgain: 'Watch again',
+        near: { clear: (n) => `${n} bubbles left`, score: (n) => `${n} points short`, gold: (n) => `${n} gold short`, chain: (m, n) => `best chain ${m}, ${n} short` },
+        officialTitle: 'Today\'s official score', practiceTitle: 'Practice round',
+        above: (d) => `${d} above the expert score`, below: (d) => `${d} below the expert score`,
+        officialNote: 'Plays after this are practice. Only your first counts. New sheet tomorrow.',
+        practiceNote: (a, b) => `Official ${a} · practice best ${b}`,
+        streak: (n) => `🔥 ${n}-day streak${n >= 3 ? '. Keep it going tomorrow.' : ''}`,
+        copy: 'Copy result', copied: 'Copied', selectCopy: 'Selected. Copy it manually.',
+        watchExpert: 'Watch the expert', watchExpertAgain: 'Watch it again', practice: 'Practice again',
+        endlessClose: (n) => `So close! Only ${n} bubbles left`, outOfPresses: 'Out of presses',
+        endlessLine: (c, m, free, b) => `${c} sheets cleared · best chain ${m} · ${free ? 'best' : 'week best'} ${b}`,
+        playAgain: 'Play again',
+        pickerTitle: 'Levels', pickerLine: (x, y) => `${x} / ${y} stars. Unwrap one to unlock the next.`, closeBtn: 'Close',
+        levelAria: (i, locked, n) => `Level ${i}${locked ? ', locked' : n ? `, ${n} stars` : ''}`, starsAria: (n) => `${n} stars`
+      },
+      share: {
+        date: (key) => new Date(key + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+        daily: (name, date, th, p, s, ref, marks) => `${name} · ${date} · ${th}\n${p} presses: ${s} (expert ${ref})\n${marks}`,
+        endless: (name, title, s, c, m) => `${name} · ${title}\nScore ${s}\n${c} sheets · best chain ${m}`,
+        free: 'Free play', weekly: (w) => `Weekly ${w}`, streak: (n) => `🔥 ${n}-day streak`
+      },
+      lvName: ['popped', 'soft', 'half full', 'full'], kindName: ['Bubble', 'Tape', 'Gold bubble', 'Double bubble', 'Big bubble'],
+      goldGot: 'Gold bubble, collected', goldLostAria: 'Gold bubble, popped by hand', popped: 'Popped'
+    }
+  };
+
+  // 线条图标（不依赖外部字体，平台包里也能用）
+  const svg = (d) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const IC = {
+    menu: svg('<path d="M4 7h16M4 12h16M4 17h16"/>'),
+    restart: svg('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'),
+    hint: svg('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>'),
+    undo: svg('<path d="M9 14l-5-5 5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>'),
+    pump: svg('<path d="M12 2v5M9 2h6"/><rect x="8.5" y="7" width="7" height="10" rx="2"/><path d="M12 17v3M7 21h10"/>'),
+    sheet: svg('<circle cx="7" cy="7" r="2.6"/><circle cx="17" cy="7" r="2.6"/><circle cx="7" cy="17" r="2.6"/><circle cx="17" cy="17" r="2.6"/>'),
+    target: svg('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>'),
+    chain: svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+    calendar: svg('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
+    conveyor: svg('<rect x="3" y="15" width="18" height="5" rx="2.5"/><rect x="7" y="6" width="10" height="7" rx="1.5"/>'),
+    box: svg('<path d="M4 8l8-4 8 4v9l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v9"/>'),
+    coin: '<span class="coin"></span>'
+  };
+
+  const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STEP = reduceMotion ? 35 : 75, SLOW_STEP = reduceMotion ? 35 : 120, SLOW_AFTER = 20;
+  const $ = (id) => document.getElementById(id);
+
+  // 本地存储可能被清空、被改坏或者类型不对：读的时候按类型校验，不合格就当没存过
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    obj(k) { const v = store.get(k, null); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; },
+    num(k, d) { const v = store.get(k, d); return typeof v === 'number' && isFinite(v) ? v : d; },
+    pick(k, list, d) { const v = store.get(k, d); return list.indexOf(v) >= 0 ? v : d; }
+  };
+  function cleanProgress(p) {
+    const out = {};
+    for (let i = 1; i <= LEVELS.length; i++) { const v = p[i]; if (v === 1 || v === 2 || v === 3) out[i] = v; }
+    return out;
+  }
+  const guessLang = () => (/^zh\b/i.test(navigator.language || '') ? 'zh' : 'en');
+
+  const S = {
+    mode: 'level', busy: false, ending: false, hint: -1, replaying: false, panel: null, playing: false, adPlaying: false,
+    lang: store.pick('bw.lang', ['zh', 'en'], null) || guessLang(),
+    sound: store.get('bw.sound', true) !== false, nums: store.get('bw.nums', false) === true,
+    progress: cleanProgress(store.obj('bw.progress2')), fails: {}, solSeen: {}, freeUsed: {},
+    level: null, daily: null, endless: { weekly: null, free: null }, endlessKind: store.pick('bw.ek', ['weekly', 'free'], 'weekly'),
+    shown: 0, litKey: '', replayHud: null
+  };
+  let T = I18N[S.lang] || I18N.en;
+  const fmt = (n) => Number(n).toLocaleString(T.locale);
+  const run = () => (S.mode === 'endless' ? S.endless[S.endlessKind] : S[S.mode]);
+  const adClock = { start: Date.now(), lastInter: 0, lastRewarded: 0, breaks: 0 };
+  // 广告适配层：默认是页面里的模拟广告；打包到 Poki 等平台时由 ads-*.js 提供 window.BW_ADS 换成真实 SDK。
+  // managesFrequency 为 true 的平台（Poki）自己控制插屏频率，我们每个休息点都请求，由平台决定放不放。
+  const ADS = window.BW_ADS || {
+    name: 'sim', managesFrequency: false,
+    init: () => Promise.resolve(), loadingFinished() {}, gameplayStart() {}, gameplayStop() {},
+    interstitial: (done) => showAd('', done, true),
+    rewarded: (reason, cb) => showAd(reason, () => cb(true))
+  };
+  // gameplayStart 在玩家第一次捏的时候发，gameplayStop 在一局结束、打开菜单、放广告前发；同一个事件不连发两次。
+  function startPlay() { if (!S.playing) { S.playing = true; try { ADS.gameplayStart(); } catch (e) {} } }
+  function stopPlay() { if (S.playing) { S.playing = false; try { ADS.gameplayStop(); } catch (e) {} } }
+  // 广告期间：锁住所有输入（S.adPlaying），声音整个挂起
+  const mute = () => { S.adPlaying = true; setInert(); try { if (ac) ac.suspend(); } catch (e) {} };
+  const unmute = () => { S.adPlaying = false; setInert(); try { if (ac && S.sound) ac.resume(); } catch (e) {} };
+  // 同一时间只放一条广告；奖励只发给发起请求的那一局，而且那一局状态没被换掉
+  function rewarded(reason, grant) {
+    if (S.adPlaying) return;
+    const r0 = run(), mode0 = S.mode;
+    stopPlay(); mute();
+    let settled = false;
+    ADS.rewarded(reason, (ok) => {
+      if (settled) return; settled = true;
+      unmute(); adClock.lastRewarded = Date.now();
+      if (ok && run() === r0 && S.mode === mode0) grant();
+    }, mute);
+  }
+
+  // ---------- runs ----------
+  function newRun(d, lv, kind, presses) {
+    return { d, lv: Int8Array.from(lv), kind: Int8Array.from(kind), mark: new Int8Array(d.n),
+      startLv: Int8Array.from(lv), startKind: Int8Array.from(kind),
+      presses, total: presses, used: 0, score: 0, chains: [], maxChain: 0, gold: 0, lost: 0, history: [], over: false, adUsed: false, freeHints: FREE_HINTS };
+  }
+  function unlockedUpTo() {
+    let n = 1;
+    for (let i = 1; i <= LEVELS.length; i++) if (S.progress[i]) n = i + 1;
+    return Math.min(n, LEVELS.length);
+  }
+  function startLevel(idx) {
+    const def = LEVELS[idx];
+    const d = E.dims(def.cols, def.rows);
+    const r = newRun(d, Int8Array.from(def.lv, Number), Int8Array.from(def.kind, Number), def.presses);
+    r.idx = idx; r.def = def;
+    if (S.freeUsed[def.id]) r.freeHints = 0;
+    S.level = r;
+    store.set('bw.level2', idx);
+  }
+  const utcDayKey = () => new Date().toISOString().slice(0, 10);
+  // 用日期当种子出 12 张候选纸，取第一张"要动脑"的：高手分比只会挑最大连锁的打法高 30% 以上，而且连锁够大。
+  let dailyCache = null;
+  function startDaily() {
+    const key = utcDayKey();
+    const wd = new Date(key + 'T00:00:00Z').getUTCDay();
+    const th = DAILY_THEMES[wd];
+    const d = E.dims(th.cols || 6, th.rows || 8), presses = th.presses || 6;
+    let pick = dailyCache && dailyCache.key === key ? dailyCache.pick : null;
+    if (!pick) {
+    for (let k = 0; k < 12; k++) {
+      const b = E.board(d, E.rng(E.hash('daily-v2-' + key + '#' + k)), th.spec);
+      const ref = E.solve(d, b.lv, b.kind, presses, null, 50);
+      const greedy = E.playGreedy(d, b.lv, b.kind, presses).score;
+      const ratio = ref.score / Math.max(1, greedy);
+      const good = ratio >= 1.3 && ref.score >= 60 * presses;
+      if (!pick || (good && !pick.good) || (good === pick.good && ratio > pick.ratio)) pick = { b, ref, ratio, good };
+      if (good) break;
+    }
+    // 束搜索偶尔会漏掉好路线：再让"每下往后看一步"的打法跑一遍，高手分取两者里更高的
+    const smart = E.playOut(d, pick.b.lv, pick.b.kind, presses, E.lookPick);
+    if (smart.score > pick.ref.score) pick.ref = { score: smart.score, path: smart.path };
+    dailyCache = { key, pick };
+    }
+    const r = newRun(d, pick.b.lv, pick.b.kind, presses);
+    const saved = store.obj('bw.d.' + key);
+    // 正式成绩：第一局一开捏就锁定。中途重来、刷新页面，都按放弃时的分数记正式成绩
+    if (saved.official == null && saved.partial && typeof saved.partial.score === 'number') {
+      saved.official = saved.partial.score; saved.officialChains = Array.isArray(saved.partial.chains) ? saved.partial.chains : [];
+      saved.best = Math.max(Number(saved.best) || 0, saved.official);
+      delete saved.partial; store.set('bw.d.' + key, saved);
+      bumpStreak(key);
+    }
+    Object.assign(r, { key, weekday: wd, theme: th, ref: pick.ref, saved, freeHints: 0 });
+    S.daily = r;
+  }
+  // 连续打卡：每天交出每日一张的正式成绩就算一天，断一天就从 1 重新数
+  const dayBefore = (key) => new Date(Date.parse(key + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+  function bumpStreak(key) {
+    const st = store.obj('bw.streak');
+    if (st.last === key) return Number(st.count) || 1;
+    const count = st.last === dayBefore(key) ? (Number(st.count) || 0) + 1 : 1;
+    store.set('bw.streak', { last: key, count });
+    return count;
+  }
+  function streakNow() {
+    const st = store.obj('bw.streak'), today = utcDayKey();
+    return st.last === today || st.last === dayBefore(today) ? Math.max(0, Number(st.count) || 0) : 0;
+  }
+  function isoWeekUTC() {
+    const now = new Date();
+    const t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const day = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - day);
+    const y = t.getUTCFullYear();
+    const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 86400000 + 1) / 7);
+    return `${y}-W${String(w).padStart(2, '0')}`;
+  }
+  // 越往后的纸越难，也陆续出现金泡泡、胶带格、双层泡泡和大气泡；捏完一张返还的步数也越来越多（最多 7 下）。
+  // 模拟（tools 之外的调参脚本）：休闲玩家中位捏完 6 张，会动脑的玩家中位 13 张，一局一定会结束。
+  function sheetSpec(s) {
+    return {
+      p1: Math.min(0.40, 0.2 + 0.015 * (s - 1)), p3: Math.max(0.24, 0.42 - 0.015 * (s - 1)),
+      gold: s >= 2 ? (s >= 5 ? 2 : 1) : 0, tape: s >= 3 ? Math.min(4, Math.floor((s - 1) / 2)) : 0,
+      double: s >= 5 ? Math.min(4, s - 4) : 0, big: s >= 7 ? (s >= 10 ? 2 : 1) : 0
+    };
+  }
+  const sheetBonus = (s) => Math.min(7, ENDLESS.bonus + Math.floor(s / 2));
+  function loadSheet(r) {
+    const b = E.board(r.d, r.rand, sheetSpec(r.sheet));
+    r.lv = b.lv; r.kind = b.kind; r.startLv = Int8Array.from(b.lv); r.startKind = Int8Array.from(b.kind);
+    r.mark = new Int8Array(r.d.n); r.history = [];
+  }
+  // 本周赛：全世界这一周用同一串纸（种子是 UTC 周数），排名才公平。随便捏：每局随机，不计排行。
+  function startEndless(kind) {
+    const d = E.dims(6, 8);
+    const week = isoWeekUTC();
+    const seed = kind === 'weekly' ? E.hash('endless-v3-' + week) : (Math.random() * 4294967296) >>> 0;
+    const r = newRun(d, new Int8Array(d.n), new Int8Array(d.n), ENDLESS.start);
+    Object.assign(r, { free: kind === 'free', rand: E.rng(seed), sheet: 1, cleared: 0, week, bestKey: kind === 'weekly' ? 'bw.best3.' + week : 'bw.best3.free' });
+    r.best = Math.max(0, store.num(r.bestKey, 0));
+    loadSheet(r);
+    S.endless[kind] = r;
+  }
+
+  // ---------- audio ----------
+  let ac = null, master = null, noiseBuf = null;
+  function ensureAudio() {
+    if (!S.sound) return;
+    try {
+      if (!ac) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        ac = new AC();
+        master = ac.createGain(); master.gain.value = 0.7; master.connect(ac.destination);
+        const len = Math.floor(ac.sampleRate * 0.12);
+        noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+        const ch = noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+      }
+      if (ac.state === 'suspended') ac.resume();
+    } catch (e) {}
+  }
+  function popSound(pitch, vol, delay) {
+    if (!ac || !S.sound || S.adPlaying) return;
+    try {
+      const t = ac.currentTime + delay;
+      const src = ac.createBufferSource(); src.buffer = noiseBuf; src.playbackRate.value = 0.85 + Math.random() * 0.3;
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = (1400 + Math.random() * 500) * pitch; bp.Q.value = 0.9;
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.9 * vol, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + 0.1);
+      const o = ac.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(320 * pitch, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.05);
+      const og = ac.createGain(); og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(0.35 * vol, t + 0.002); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      o.connect(og); og.connect(master); o.start(t); o.stop(t + 0.08);
+    } catch (e) {}
+  }
+  // 拿星、盖章用的短音
+  function tone(freq, dur, vol, type, delay) {
+    if (!ac || !S.sound || S.adPlaying) return;
+    try {
+      const t = ac.currentTime + (delay || 0);
+      const o = ac.createOscillator(); o.type = type || 'triangle'; o.frequency.setValueAtTime(freq, t);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  const ding = (k) => { tone(880 * Math.pow(1.26, k), 0.22, 0.22, 'triangle'); tone(1760 * Math.pow(1.26, k), 0.12, 0.06, 'sine', 0.02); };
+  const thump = () => tone(120, 0.18, 0.4, 'sine');
+  // 浏览器要求玩家先真正点过页面才允许震动，否则会在控制台报错
+  function buzz(ms) { try { const ua = navigator.userActivation; if (navigator.vibrate && (!ua || ua.hasBeenActive)) navigator.vibrate(ms); } catch (e) {} }
+
+  // ---------- board ----------
+  const sheetEl = $('sheet'), popupEl = $('popup'), panelEl = $('panel'), overlayEl = $('overlay'), stageEl = $('stage'), tipEl = $('tip');
+  const appEl = $('app');
+  // inert 会同时挡住点击、Tab 焦点和读屏，弹层或广告在的时候后面的游戏就碰不到
+  function setInert() { appEl.inert = !overlayEl.hidden || S.adPlaying; }
+  let cells = [], boardKey = '', pressIdx = -1;
+  function canPress(i) {
+    const r = run();
+    return !S.busy && !S.ending && !S.replaying && !S.adPlaying && overlayEl.hidden && !r.over && r.kind[i] !== E.TAPE && r.lv[i] > 0;
+  }
+  function buildBoard(d) {
+    if (boardKey === d.key) return;
+    boardKey = d.key;
+    sheetEl.innerHTML = '';
+    sheetEl.style.gridTemplateColumns = `repeat(${d.cols},1fr)`;
+    document.body.style.setProperty('--ratio', (d.cols / d.rows).toFixed(4));
+    cells = [];
+    for (let i = 0; i < d.n; i++) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'bubble';
+      b.style.setProperty('--d', (-Math.random() * 1.7).toFixed(2) + 's');
+      b.style.setProperty('--fd', (((i % d.cols) + ((i / d.cols) | 0)) * 0.025).toFixed(3) + 's');
+      const n = document.createElement('span'); n.className = 'n'; n.setAttribute('aria-hidden', 'true');
+      b.appendChild(n);
+      // 按下时泡泡先往下压，松手才"啪"：手指还在这颗泡泡上才算数
+      b.addEventListener('pointerdown', (e) => {
+        if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        e.preventDefault();
+        if (pressIdx >= 0 && cells[pressIdx]) cells[pressIdx].classList.remove('pressing');
+        pressIdx = -1;
+        if (!canPress(i)) return;
+        pressIdx = i; b.classList.add('pressing'); ensureAudio();
+      });
+      b.addEventListener('click', (e) => { if (e.detail === 0) onPress(i); });
+      sheetEl.appendChild(b);
+      cells.push(b);
+    }
+  }
+  document.addEventListener('pointerup', (e) => {
+    if (pressIdx < 0 || !e.isPrimary) return;
+    const i = pressIdx; pressIdx = -1;
+    if (!cells[i]) return;
+    cells[i].classList.remove('pressing');
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if (el && el.closest && el.closest('.bubble') === cells[i]) onPress(i);
+  });
+  const clearPress = () => { if (pressIdx >= 0 && cells[pressIdx]) cells[pressIdx].classList.remove('pressing'); pressIdx = -1; };
+  document.addEventListener('pointercancel', clearPress);
+  window.addEventListener('blur', clearPress);
+
+  function paint(r, popped) {
+    buildBoard(r.d);
+    for (let i = 0; i < r.d.n; i++) {
+      const v = Math.min(3, r.lv[i]), k = r.kind[i], m = r.mark[i], b = cells[i];
+      const sig = k * 100 + m * 10 + v;
+      if (b._sig !== sig || b._lang !== S.lang) {
+        b._sig = sig; b._lang = S.lang;
+        b.classList.remove('lv0', 'lv1', 'lv2', 'lv3', 'gold', 'taped', 'got', 'lost', 'double', 'big');
+        if (k === E.TAPE) {
+          b.classList.add('taped'); b.disabled = true; b.setAttribute('aria-label', T.kindName[E.TAPE]);
+          b.firstChild.textContent = '';
+          continue;
+        }
+        b.disabled = false;
+        b.classList.add('lv' + v);
+        if (k === E.GOLD) b.classList.add('gold');
+        if (k === E.DOUBLE && v) b.classList.add('double');
+        if (k === E.BIG && v) b.classList.add('big');
+        if (m === 1) b.classList.add('got');
+        if (m === 2) b.classList.add('lost');
+        b.firstChild.textContent = v || '';
+        b.setAttribute('aria-label', v ? `${T.kindName[k]}, ${T.lvName[v]}` : (m === 1 ? T.goldGot : m === 2 ? T.goldLostAria : T.popped));
+      }
+      b.classList.toggle('hint', S.hint === i);
+    }
+    sheetEl.classList.toggle('pumping', !!r.pumping);
+    if (popped) {
+      const many = popped.length > 8;
+      popped.forEach((i, j) => { burst(cells[i]); if (!many || j % 2 === 0) frags(cells[i], r.kind[i] === E.GOLD); });
+    }
+  }
+  function burst(b) {
+    b.classList.remove('burst'); void b.offsetWidth; b.classList.add('burst');
+    clearTimeout(b._bt); b._bt = setTimeout(() => b.classList.remove('burst'), 450);
+  }
+  // 爆开时溅出几片塑料碎片
+  function frags(b, gold) {
+    if (reduceMotion) return;
+    for (let k = 0; k < 4; k++) {
+      const f = document.createElement('span');
+      f.className = 'frag' + (gold ? ' g' : '');
+      const a = Math.random() * Math.PI * 2, dist = 18 + Math.random() * 22;
+      f.style.setProperty('--dx', (Math.cos(a) * dist).toFixed(1) + 'px');
+      f.style.setProperty('--dy', (Math.sin(a) * dist).toFixed(1) + 'px');
+      f.style.setProperty('--rot', ((Math.random() * 360) | 0) + 'deg');
+      b.appendChild(f);
+      setTimeout(() => f.remove(), 520);
+    }
+  }
+  function fresh() {
+    for (const b of cells) { b.classList.remove('fresh'); void b.offsetWidth; b.classList.add('fresh'); clearTimeout(b._ft); b._ft = setTimeout(() => b.classList.remove('fresh'), 900); }
+  }
+  function shake(big) {
+    if (reduceMotion) return;
+    sheetEl.classList.remove('shake', 'shake-big'); void sheetEl.offsetWidth;
+    sheetEl.classList.add(big ? 'shake-big' : 'shake');
+    setTimeout(() => sheetEl.classList.remove('shake', 'shake-big'), 520);
+  }
+  function popup(text, kind, small) {
+    const el = document.createElement('div');
+    el.className = 'pop-text' + (kind ? ' ' + kind : '');
+    el.textContent = text;
+    if (small) { const s = document.createElement('small'); s.textContent = small; el.appendChild(s); }
+    popupEl.appendChild(el);
+    setTimeout(() => el.remove(), kind === 'huge' ? 1450 : 1150);
+  }
+  function showTip(text) {
+    if (!text) { tipEl.hidden = true; return; }
+    tipEl.textContent = text; tipEl.hidden = false;
+  }
+  tipEl.addEventListener('click', (e) => { e.stopPropagation(); if (S.replaying && S.replayAbort) { S.replayAbort(); return; } tipEl.hidden = true; });
+
+  // ---------- HUD ----------
+  function applyStaticText() {
+    document.documentElement.lang = S.lang === 'zh' ? 'zh-CN' : 'en';
+    document.title = S.lang === 'zh' ? `${T.name} · Popwrap` : T.name;
+    $('btn-menu').innerHTML = IC.menu; $('btn-menu').setAttribute('aria-label', T.aria.menu);
+    $('btn-restart').innerHTML = IC.restart; $('btn-restart').setAttribute('aria-label', T.aria.restart);
+    $('ic-hint').innerHTML = IC.hint; $('ic-undo').innerHTML = IC.undo; $('ic-pump').innerHTML = IC.pump;
+    $('lbl-hint').textContent = T.tools.hint; $('lbl-undo').textContent = T.tools.undo; $('lbl-pump').textContent = T.tools.pump;
+    $('tools-note').textContent = T.tools.dailyNote;
+    $('ek-weekly').textContent = T.chipWeekly; $('ek-free').textContent = T.chipFree;
+    sheetEl.setAttribute('aria-label', T.aria.sheet);
+    $('ad').setAttribute('aria-label', T.aria.ad);
+    document.body.classList.toggle('show-nums', S.nums);
+  }
+  function levelTip(def) {
+    if (def.tip && T.tips[def.tip]) return T.tips[def.tip];
+    const has = (k) => def.kind.includes(String(k));
+    if (has(E.DOUBLE) && has(E.BIG)) return T.tips.hasMix;
+    if (has(E.BIG)) return T.tips.hasBig;
+    if (has(E.DOUBLE)) return T.tips.hasDouble;
+    if (has(E.GOLD)) return T.tips.hasGold;
+    return T.tips.generic;
+  }
+  function levelPassed(r) {
+    return E.goalMet(r.def.goal, { left: E.alive(r.lv), score: r.score, gold: r.gold, maxChain: r.maxChain });
+  }
+  // 进度条：三颗星摆在 40% / 68% / 92%（左边留给分数），分数到哪条星线，填充就正好走到那颗星（分段映射）。
+  // 关卡的第一颗星就是"达成目标"：分数目标关用目标分做星线；其它目标关先显示一个靶心，目标达成才变成星。
+  const MARK_AT = [0.4, 0.68, 0.92];
+  function meterModel(r) {
+    if (S.mode === 'level') {
+      const [s2, s3] = r.def.stars, g = r.def.goal, ok = levelPassed(r), scoreGoal = g.type === 'score';
+      const t1 = scoreGoal ? g.target : Math.round(s2 * 0.55);
+      return { ts: [t1, s2, s3], at: MARK_AT, marks: [{ lit: ok, goal: !scoreGoal }, { lit: ok && r.score >= s2 }, { lit: ok && r.score >= s3 }] };
+    }
+    if (S.mode === 'daily') {
+      const ref = r.ref ? r.ref.score : 1, ts = DAILY_STARS.map((f) => Math.round(ref * f));
+      return { ts, at: MARK_AT, marks: ts.map((t) => ({ lit: r.score >= t })) };
+    }
+    if (r.best > 0) return { ts: [r.best], at: [0.85], marks: [{ lit: r.score > r.best }] };
+    return { ts: [1500], at: [1], marks: [] };
+  }
+  function meterPos(m, v) {
+    let pt = 0, pa = 0;
+    for (let k = 0; k < m.ts.length; k++) {
+      const t = m.ts[k], a = m.at[k];
+      if (v <= t) return pa + (a - pa) * (t > pt ? (v - pt) / (t - pt) : 1);
+      pt = t; pa = a;
+    }
+    return Math.min(1, pa + (1 - pa) * (v - pt) / Math.max(1, pt * 0.2));
+  }
+  function goalChip(r) {
+    if (S.mode === 'level') {
+      const g = r.def.goal;
+      if (g.type === 'clear') return [IC.sheet, T.chip.clear(E.alive(r.lv))];
+      if (g.type === 'score') return [IC.target, T.chip.score(r.score, g.target)];
+      if (g.type === 'gold') return [IC.coin, T.chip.gold(r.gold, g.target)];
+      return [IC.chain, T.chip.chain(r.maxChain, g.target)];
+    }
+    if (S.mode === 'daily') { const n = streakNow(); return [IC.calendar, T.chip.daily(T.themes[r.theme.id], r.total) + (n ? ` · 🔥${n}` : '')]; }
+    return [IC.conveyor, T.chip.endless(E.alive(r.lv))];
+  }
+  let tween = null;
+  function setScore(to, instant) {
+    if (tween) cancelAnimationFrame(tween);
+    const from = S.shown, t0 = performance.now(), dur = instant ? 0 : 420;
+    const step = (now) => {
+      const p = dur ? Math.min(1, (now - t0) / dur) : 1;
+      S.shown = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      drawMeter();
+      if (p < 1) tween = requestAnimationFrame(step); else tween = null;
+    };
+    if (instant) step(t0); else tween = requestAnimationFrame(step);
+  }
+  function drawMeter() {
+    const r = run(), m = S.replayHud ? S.replayHud.meter : meterModel(r);
+    $('meter-fill').style.width = (meterPos(m, S.shown) * 100).toFixed(1) + '%';
+    $('meter-label').textContent = fmt(S.shown);
+    $('meter').setAttribute('aria-label', T.aria.meter(fmt(S.shown), fmt(m.ts[m.ts.length - 1])));
+  }
+  function updateHUD(instant) {
+    const r = run(), rh = S.replayHud;
+    $('endless-chips').hidden = S.mode !== 'endless' || !!rh;
+    document.body.classList.toggle('mode-endless', S.mode === 'endless');
+    let kicker, big;
+    if (rh) { kicker = T.hud.replay; big = `${rh.k}/${rh.n}`; }
+    else if (S.mode === 'level') { kicker = T.hud.level; big = r.def.id; }
+    else if (S.mode === 'daily') { const [, mo, dd] = r.key.split('-').map(Number); kicker = T.weekdays[r.weekday]; big = `${mo}/${dd}`; }
+    else { kicker = T.hud.sheet; big = r.sheet; }
+    $('hud-kicker').textContent = kicker; $('hud-big').textContent = big;
+
+    const m = rh ? rh.meter : meterModel(r);
+    const marks = [...$('meter').querySelectorAll('.meter-mark')];
+    const key = m.marks.map((x) => (x.lit ? 1 : 0)).join('');
+    marks.forEach((el, j) => {
+      const mk = m.marks[j];
+      el.hidden = !mk;
+      if (!mk) return;
+      el.style.left = (m.at[j] * 100).toFixed(1) + '%';
+      const was = el.classList.contains('lit');
+      el.classList.toggle('lit', mk.lit);
+      el.classList.toggle('goal', !!mk.goal && !mk.lit);
+      el.textContent = mk.goal && !mk.lit ? '◎' : '★';
+      if (mk.lit && !was && !instant && S.litKey && key !== S.litKey) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); ding(j); }
+    });
+    S.litKey = key;
+    const shownTarget = rh ? rh.score : r.score;
+    if (instant) { S.shown = shownTarget; setScore(shownTarget, true); } else if (shownTarget !== S.shown) setScore(shownTarget); else drawMeter();
+
+    const movesEl = $('moves'), presses = rh ? rh.left : r.presses;
+    if ($('moves-n').textContent !== String(presses) && !instant) { movesEl.classList.remove('bump'); void movesEl.offsetWidth; movesEl.classList.add('bump'); }
+    $('moves-n').textContent = presses; $('moves-cap').textContent = T.hud.moves;
+    movesEl.classList.toggle('low', presses <= 1 && !r.over);
+
+    const [icon, text] = goalChip(r);
+    $('goal-icon').innerHTML = icon; $('goal-text').textContent = text;
+    $('goal').classList.toggle('ok', S.mode === 'level' && levelPassed(r));
+    if (S.mode === 'endless') { $('ek-weekly').setAttribute('aria-pressed', String(!r.free)); $('ek-free').setAttribute('aria-pressed', String(r.free)); }
+    syncTools();
+  }
+  function syncTools() {
+    const r = run(), daily = S.mode === 'daily';
+    $('tools').hidden = daily; $('tools-note').hidden = !daily;
+    const free = r.freeHints > 0;
+    const b = $('badge-hint');
+    b.textContent = free ? String(r.freeHints) : '🎬'; b.classList.toggle('vid', !free);
+    b.setAttribute('aria-hidden', free ? 'false' : 'true');
+    $('btn-undo').classList.toggle('dim', !r.history.length);
+    $('btn-pump').classList.toggle('dim', run().pumping);
+  }
+  const toolsLocked = () => { const r = run(); return S.mode === 'daily' || S.busy || S.ending || S.replaying || S.adPlaying || r.over || !overlayEl.hidden; };
+
+  // ---------- play ----------
+  function snapshotOf(r) {
+    return { lv: Int8Array.from(r.lv), kind: Int8Array.from(r.kind), mark: Int8Array.from(r.mark), presses: r.presses, used: r.used, score: r.score,
+      chains: r.chains.slice(), maxChain: r.maxChain, gold: r.gold, lost: r.lost };
+  }
+  function onPress(i) {
+    if (!canPress(i)) return;
+    const r = run();
+    if (run().pumping) { pump(i); return; }
+    ensureAudio();
+    if (S.mode === 'level' && r.def.guide && r.def.guide[r.used] !== i) r.offGuide = true;
+    if (!(S.mode === 'level' && r.def.guide && !r.offGuide && r.used + 1 < r.def.guide.length)) tipEl.hidden = true;
+    r.history.push(snapshotOf(r));
+    S.hint = -1;
+    startPlay();
+    S.busy = true;
+    animatePress(r, i, (res) => finishPress(r, res));
+  }
+  // 连锁过了 20 个，后面的每一波放慢一点，让大连锁有"慢镜头"的感觉
+  function animatePress(r, i, done, bag) {
+    const frames = E.frames(r.d, r.lv, r.kind, i);
+    const res = { count: 0, gold: 0, direct: r.kind[i] === E.GOLD ? 1 : 0 };
+    if (res.direct) r.mark[i] = 2;
+    let t = 0, cum = 0;
+    frames.forEach((f, k) => {
+      cum += f.popped.length;
+      const at = t;
+      const id = setTimeout(() => {
+        for (const p of f.gold) { r.mark[p] = 1; res.gold++; }
+        r.lv = f.lv; r.kind = f.kind;
+        paint(r, f.popped);
+        res.count += f.popped.length;
+        if (f.popped.length) {
+          const loud = Math.min(3, f.popped.length);
+          for (let j = 0; j < loud; j++) popSound(1 + k * 0.05, j ? 0.55 : 1, j * 0.014);
+          buzz(f.popped.length > 3 ? 18 : 9);
+        }
+        if (k === frames.length - 1) done(res);
+      }, at);
+      if (bag) bag.push(id);
+      t += cum >= SLOW_AFTER ? SLOW_STEP : STEP;
+    });
+  }
+  function finishPress(r, res) {
+    const pts = E.pointsFor(res.count, res.gold);
+    r.used++; r.presses--; r.score += pts; r.chains.push(res.count);
+    if (S.mode === 'daily' && r.saved.official == null) { r.saved.partial = { score: r.score, chains: r.chains.slice() }; store.set('bw.d.' + r.key, r.saved); }
+    r.maxChain = Math.max(r.maxChain, res.count); r.gold += res.gold; r.lost += res.direct;
+    if (res.count >= 20) { popup(T.pop.chain(res.count) + '!', 'huge', `+${pts}`); shake(true); buzz(40); }
+    else if (res.count >= 10) { popup(T.pop.chain(res.count), 'big', `+${pts}`); shake(false); }
+    else if (res.count >= 3) popup(T.pop.chain(res.count), '', `+${pts}`);
+    if (res.gold) popup(T.pop.gold(res.gold, res.gold * E.GOLD_POINTS), 'gold');
+    if (res.direct) popup(T.pop.goldLost, 'warn');
+    const left = E.alive(r.lv);
+
+    if (S.mode === 'endless') {
+      if (res.count >= ENDLESS.chainBonus) { r.presses++; popup(T.pop.longChain, 'bonus'); }
+      if (res.gold) { r.presses += res.gold * ENDLESS.goldPress; popup(T.pop.goldBack(res.gold * ENDLESS.goldPress), 'bonus'); }
+      if (!left) {
+        const bonus = sheetBonus(r.sheet);
+        r.cleared++; r.presses += bonus;
+        popup(T.pop.sheetDone(bonus), 'bonus');
+        updateHUD();
+        setTimeout(() => { r.sheet++; loadSheet(r); paint(r); fresh(); S.busy = false; updateHUD(); }, 650);
+        return;
+      }
+      if (r.presses <= 0) endRun(r);
+    } else {
+      if (!left && r.presses > 0) {
+        const spare = r.presses, bonus = spare * E.LEFTOVER_POINTS;
+        r.score += bonus; r.presses = 0;
+        popup(T.pop.early(spare, bonus), 'bonus');
+        endRun(r);
+      } else if (!left || r.presses <= 0) endRun(r);
+      else if (S.mode === 'level' && r.def.goal.type === 'gold' && E.goldTotal(r.startLv, r.startKind) - r.lost < r.def.goal.target) endRun(r);
+    }
+    S.busy = false;
+    if (S.mode === 'level') S.hint = guideCell(r);
+    paint(r);
+    updateHUD();
+  }
+  // 教学关的虚线圈：按 guide 的顺序提示，玩家没照着捏就不再提示。
+  function guideCell(r) {
+    const g = r.def && r.def.guide;
+    if (!g || r.over || r.offGuide || r.used >= g.length) return -1;
+    const i = g[r.used];
+    return r.lv[i] ? i : -1;
+  }
+  function endRun(r) {
+    r.over = true;
+    stopPlay();
+    tipEl.hidden = true;
+    if (S.mode === 'level') {
+      adClock.breaks++;
+      if (!levelPassed(r)) S.fails[r.def.id] = (S.fails[r.def.id] || 0) + 1;
+      else { const st = starsFor(r); if ((S.progress[r.def.id] || 0) < st) { S.progress[r.def.id] = st; store.set('bw.progress2', S.progress); } }
+    }
+    if (S.mode === 'daily') {
+      const first = r.saved.official == null;
+      r.isOfficial = first;
+      if (first) { r.saved.official = r.score; r.saved.officialChains = r.chains.slice(); bumpStreak(r.key); }
+      delete r.saved.partial;
+      r.saved.best = Math.max(r.saved.best || 0, r.score);
+      store.set('bw.d.' + r.key, r.saved);
+    }
+    if (S.mode === 'endless') {
+      adClock.breaks += AD_RULES.everyBreaks;
+      if (r.score > r.best) { r.best = r.score; store.set(r.bestKey, r.best); }
+    }
+    S.ending = true;
+    setTimeout(() => { S.ending = false; if (run() === r && r.over && !S.replaying && overlayEl.hidden) showResult(); }, 650);
+  }
+
+  // ---------- props ----------
+  function pump(i) {
+    const r = run();
+    if (r.lv[i] >= 3) { popup(T.pop.full, 'warn'); return; }
+    r.history.push(snapshotOf(r));
+    r.lv = Int8Array.from(r.lv); r.lv[i]++;
+    r.pumping = false; tipEl.hidden = true;
+    ensureAudio(); popSound(0.6, 0.5, 0);
+    popup(T.pop.pumped, 'bonus');
+    paint(r); updateHUD();
+  }
+  function undo() {
+    const r = run();
+    const s = r.history.pop();
+    if (!s) return;
+    Object.assign(r, s);
+    S.hint = -1;
+    paint(r); updateHUD();
+    popup(T.pop.undone, 'bonus');
+  }
+  // 当前局面下还差多少才达成目标（已经得到的分、金泡泡、连锁要扣掉）
+  function remainingGoal(r) {
+    const g = r.def.goal;
+    if (g.type === 'score') return { type: 'score', target: Math.max(0, g.target - r.score) };
+    if (g.type === 'gold') return { type: 'gold', target: Math.max(0, g.target - r.gold) };
+    if (g.type === 'chain' && r.maxChain >= g.target) return { type: 'none' };
+    return g;
+  }
+  // 复活前先算一下：再给几下到底能不能过关。救不回来就不让玩家白看一条广告。
+  function reviveHelps(r) {
+    if (levelPassed(r) || !E.alive(r.lv)) return false;
+    return !!E.solve(r.d, r.lv, r.kind, LEVEL_REVIVE, remainingGoal(r), 120);
+  }
+  function hint() {
+    const r = run();
+    if (S.mode === 'endless') { S.hint = E.lookPick(r.d, r.lv, r.kind); return; }
+    const gc = guideCell(r);
+    if (gc >= 0) { S.hint = gc; return; }
+    const goal = remainingGoal(r);
+    // 先用窄搜索，找不到再放宽；只有确实没有能过关的走法时才退回"分最高的一下"
+    const best = E.solve(r.d, r.lv, r.kind, r.presses, goal, 60) || E.solve(r.d, r.lv, r.kind, r.presses, goal, 300) || E.solve(r.d, r.lv, r.kind, r.presses, null, 60);
+    S.hint = best && best.path.length ? best.path[0] : E.greedyPick(r.d, r.lv, r.kind);
+  }
+
+  // ---------- ads (simulated) ----------
+  function showAd(reason, cb, inter) {
+    const ad = $('ad'), bar = $('ad-bar');
+    $('ad-kind').textContent = inter ? T.ad.inter : T.ad.rewarded;
+    $('ad-reason').textContent = inter ? T.ad.interReason : T.ad.reward(reason);
+    $('ad-note').textContent = inter ? T.ad.interNote : T.ad.rewardedNote;
+    let t = 3;
+    $('ad-count').textContent = t;
+    bar.style.transition = 'none'; bar.style.width = '0%'; ad.hidden = false; mute();
+    void bar.offsetWidth;
+    bar.style.transition = 'width 3s linear'; bar.style.width = '100%';
+    const iv = setInterval(() => {
+      t--;
+      if (t > 0) { $('ad-count').textContent = t; return; }
+      clearInterval(iv); ad.hidden = true; unmute();
+      if (inter) adClock.lastInter = Date.now(); else adClock.lastRewarded = Date.now();
+      cb();
+    }, 1000);
+  }
+  // 两次休息点（过关/失败、无尽一局结束）之后，在下一步之前按频控规则决定要不要插一条插屏。
+  function afterBreak(next, kind) {
+    if (S.adPlaying) return;
+    const now = Date.now();
+    const ok = kind !== 'retry' && unlockedUpTo() >= AD_RULES.minLevel && adClock.breaks >= AD_RULES.everyBreaks
+      && now - adClock.start >= AD_RULES.startDelay && now - adClock.lastInter >= AD_RULES.gap && now - adClock.lastRewarded >= AD_RULES.afterRewarded;
+    stopPlay();
+    if (ADS.managesFrequency) { mute(); ADS.interstitial(() => { unmute(); next(); }, mute); return; }
+    if (!ok) { next(); return; }
+    adClock.breaks = 0;
+    mute();
+    ADS.interstitial(() => { unmute(); next(); }, mute);
+  }
+
+  // ---------- floating card ----------
+  // o: { title, stars, stamp, big, countUp, lines, share, extra, actions:[{label, primary, ad, on}], dismiss }
+  function showPanel(o) {
+    (panelEl._timers || []).forEach(clearTimeout);
+    panelEl.innerHTML = '';
+    const add = (el) => { panelEl.appendChild(el); return el; };
+    const mk = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text != null) el.textContent = text; return el; };
+    const timers = [];
+    if (o.stars != null) {
+      const st = add(mk('div', 'r-stars'));
+      st.setAttribute('aria-label', T.panel.starsAria(o.stars));
+      const spans = [0, 1, 2].map(() => st.appendChild(mk('span', 'r-star', '★')));
+      spans.forEach((s, k) => { if (k < o.stars) timers.push(setTimeout(() => { s.classList.add('on'); ding(k); buzz(12); }, 300 + k * 380)); });
+    }
+    if (o.stamp) {
+      const s = add(mk('div', 'stamp', T.panel.stamp));
+      timers.push(setTimeout(() => { s.classList.add('on'); thump(); buzz(25); }, 300 + Math.max(0, o.stars || 0) * 380 + 120));
+    }
+    add(mk('h2', '', o.title));
+    if (o.big != null) {
+      const big = add(mk('div', 'r-big', typeof o.big === 'number' ? fmt(0) : o.big));
+      if (typeof o.big === 'number') {
+        const t0 = performance.now(), to = o.big;
+        const step = (now) => { const p = Math.min(1, (now - t0) / 700); big.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1 && panelEl.contains(big)) requestAnimationFrame(step); };
+        requestAnimationFrame(step);
+      }
+    }
+    for (const line of o.lines || []) add(mk('p', '', line));
+    if (o.share) {
+      const ta = add(mk('textarea'));
+      ta.id = 'share-text'; ta.readOnly = true; ta.rows = Math.min(6, o.share.split('\n').length + 1); ta.value = o.share; ta.setAttribute('aria-label', T.aria.share);
+    }
+    if (o.extra) add(o.extra);
+    const acts = add(mk('div', 'r-actions'));
+    const row = mk('div', 'r-row');
+    (o.actions || []).forEach((a, k) => {
+      const b = mk('button', 'btn' + (a.primary ? ' primary' : ''));
+      b.type = 'button';
+      if (a.ad) { const s = mk('span', '', '🎬'); s.setAttribute('aria-hidden', 'true'); b.appendChild(s); }
+      b.appendChild(document.createTextNode(a.label));
+      b.addEventListener('click', () => a.on(b));
+      if (a.primary && k === 0) acts.appendChild(b); else row.appendChild(b);
+    });
+    if (row.childNodes.length) acts.appendChild(row);
+    panelEl._timers = timers;
+    panelEl._dismiss = o.dismiss || null;
+    overlayEl.hidden = false; setInert();
+    panelEl.setAttribute('tabindex', '-1');
+    panelEl.focus({ preventScroll: true });
+  }
+  function hidePanel() {
+    (panelEl._timers || []).forEach(clearTimeout); panelEl._timers = [];
+    overlayEl.hidden = true; S.panel = null; setInert();
+  }
+  overlayEl.addEventListener('click', (e) => { if (e.target === overlayEl && panelEl._dismiss) panelEl._dismiss(); });
+  // Esc：开着菜单就关掉，没开就打开菜单（相当于暂停）
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !$('ad').hidden) return;
+    if (S.replaying) { if (S.replayAbort) S.replayAbort(); return; }
+    if (!overlayEl.hidden) { if (panelEl._dismiss) panelEl._dismiss(); }
+    else showMenu();
+  });
+  function copyAction() {
+    return { label: T.panel.copy, on: (btn) => {
+      const ta = $('share-text');
+      const fallback = () => { ta.focus(); ta.select(); btn.textContent = T.panel.selectCopy; };
+      try { navigator.clipboard.writeText(ta.value).then(() => { btn.textContent = T.panel.copied; }, fallback); } catch (e) { fallback(); }
+    } };
+  }
+  function starsFor(r) {
+    const s = r.def.stars;
+    return r.score >= s[1] ? 3 : r.score >= s[0] ? 2 : 1;
+  }
+  function nearMissLevel(r) {
+    const g = r.def.goal, N = T.panel.near;
+    if (g.type === 'clear') return E.alive(r.lv) <= 6 ? N.clear(E.alive(r.lv)) : '';
+    if (g.type === 'score') return r.score >= g.target * 0.8 ? N.score(g.target - r.score) : '';
+    if (g.type === 'gold') return r.gold >= g.target - 1 ? N.gold(g.target - r.gold) : '';
+    if (g.type === 'chain') return r.maxChain >= g.target * 0.8 ? N.chain(r.maxChain, g.target - r.maxChain) : '';
+    return '';
+  }
+  function showResult() {
+    const r = run(), P = T.panel;
+    S.panel = 'result';
+    if (S.mode === 'level') {
+      const def = r.def;
+      if (levelPassed(r)) {
+        const stars = starsFor(r);
+        if ((S.progress[def.id] || 0) < stars) { S.progress[def.id] = stars; store.set('bw.progress2', S.progress); }
+        const last = r.idx >= LEVELS.length - 1;
+        const chapterEnd = (def.id % 15 === 0) && !last;
+        const actions = [];
+        if (!last) actions.push({ label: P.next, primary: true, on: () => afterBreak(() => { startLevel(r.idx + 1); enterMode('level'); }) });
+        actions.push({ label: P.again, on: () => afterBreak(restart) }, { label: P.levels, on: () => showLevelPicker() });
+        showPanel({
+          title: last ? P.allCleared(LEVELS.length) : chapterEnd ? P.chapterDone(T.chapters[def.id / 15 - 1]) : P.cleared(def.id),
+          stars, stamp: true, big: r.score,
+          lines: [stars < 3 ? P.threeStars(def.stars[1]) : P.perfect, chapterEnd ? P.nextChapter(T.chapterShort[def.id / 15]) : ''].filter(Boolean),
+          actions
+        });
+      } else {
+        const goldGone = def.goal.type === 'gold' && E.goldTotal(r.startLv, r.startKind) - r.lost < def.goal.target;
+        const near = goldGone ? '' : nearMissLevel(r);
+        const stuck = (S.fails[def.id] || 0) >= 2 && def.sol;
+        const actions = [{ label: P.retry, primary: true, on: () => afterBreak(restart, 'retry') }];
+        if (!r.adUsed && !goldGone && reviveHelps(r)) actions.push({ label: T.ad.more(LEVEL_REVIVE), ad: true, on: () => rewarded(T.ad.more(LEVEL_REVIVE), () => { if (!r.over) return; r.adUsed = true; r.over = false; r.presses += LEVEL_REVIVE; r.history = []; hidePanel(); updateHUD(); popup(T.pop.revived(LEVEL_REVIVE), 'bonus'); }) });
+        if (stuck) actions.push(S.solSeen[def.id]
+          ? { label: P.watchAgain, on: () => replayLine(r, def.sol, def.presses) }
+          : { label: P.watchSolution, ad: true, on: () => rewarded(T.ad.solution, () => { S.solSeen[def.id] = true; replayLine(r, def.sol, def.presses); }) });
+        actions.push({ label: P.levels, on: () => showLevelPicker() });
+        const lines = [goldGone ? P.goldGone : T.goal[def.goal.type](def.goal, def.presses)];
+        if (stuck) lines.push(P.stuck);
+        showPanel({ title: goldGone ? P.goldGoneTitle : near ? P.close(near) : P.failed, big: r.score, lines, actions });
+      }
+    } else if (S.mode === 'daily') {
+      const ref = r.ref ? r.ref.score : 0;
+      const chains = r.saved.officialChains || r.chains;
+      const marks = chains.map((n) => (n >= 15 ? '💥' : n >= 8 ? '🫧' : n >= 3 ? '🔵' : '⚪')).join('');
+      const share = T.share.daily(T.name, T.share.date(r.key), T.themes[r.theme.id], r.total, fmt(r.saved.official), fmt(ref), marks) + (streakNow() > 1 ? '\n' + T.share.streak(streakNow()) : '');
+      const diff = r.score - ref;
+      const stars = DAILY_STARS.filter((f) => r.score >= Math.round(ref * f)).length;
+      const streak = streakNow();
+      const actions = [{ ...copyAction(), primary: true }, { label: P.practice, on: () => afterBreak(restart) }];
+      actions.push(r.watchedReplay
+        ? { label: P.watchExpertAgain, on: () => replay() }
+        : { label: P.watchExpert, ad: true, on: () => rewarded(T.ad.expert, () => { r.watchedReplay = true; replay(); }) });
+      showPanel({
+        title: r.isOfficial ? P.officialTitle : P.practiceTitle, stars, big: r.score,
+        lines: [diff >= 0 ? P.above(diff) : P.below(-diff), streak ? P.streak(streak) : '', r.isOfficial ? P.officialNote : P.practiceNote(fmt(r.saved.official), fmt(r.saved.best))].filter(Boolean),
+        share, actions
+      });
+    } else {
+      const left = E.alive(r.lv);
+      const actions = [{ label: P.playAgain, primary: true, on: () => afterBreak(restart) }];
+      if (!r.adUsed) actions.push({ label: T.ad.more(ENDLESS.revive), ad: true, on: () => rewarded(T.ad.more(ENDLESS.revive), () => { if (!r.over) return; r.adUsed = true; r.over = false; r.presses += ENDLESS.revive; r.history = []; hidePanel(); updateHUD(); popup(T.pop.revived(ENDLESS.revive), 'bonus'); }) });
+      actions.push(copyAction());
+      const title = r.free ? T.share.free : T.share.weekly(r.week.slice(5));
+      showPanel({
+        title: left <= ENDLESS.nearMiss ? P.endlessClose(left) : P.outOfPresses, big: r.score,
+        lines: [P.endlessLine(r.cleared, r.maxChain, r.free, fmt(r.best))],
+        share: T.share.endless(T.name, title, fmt(r.score), r.cleared, r.maxChain),
+        actions
+      });
+    }
+  }
+  function closeOverlay() { hidePanel(); if (run().over) showResult(); }
+  function showLevelPicker() {
+    if (S.busy || S.ending || S.replaying || S.adPlaying) return;
+    stopPlay();
+    if (S.mode !== 'level') enterMode('level');
+    const P = T.panel;
+    const grid = document.createElement('div'); grid.className = 'levels';
+    const open = unlockedUpTo();
+    LEVELS.forEach((def, idx) => {
+      if (idx % 15 === 0) { const h = document.createElement('h3'); h.textContent = T.chapters[idx / 15] || ''; grid.appendChild(h); }
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (S.level && S.level.idx === idx ? ' current' : '');
+      b.textContent = def.id;
+      const st = document.createElement('small'); const n = S.progress[def.id] || 0; st.textContent = n ? '★'.repeat(n) : '';
+      b.appendChild(st);
+      b.disabled = def.id > open;
+      b.setAttribute('aria-label', P.levelAria(def.id, b.disabled, n));
+      b.addEventListener('click', () => { startLevel(idx); enterMode('level'); });
+      grid.appendChild(b);
+    });
+    const total = Object.values(S.progress).reduce((a, b) => a + b, 0);
+    showPanel({ title: P.pickerTitle, lines: [P.pickerLine(total, LEVELS.length * 3)], extra: grid, actions: [{ label: P.closeBtn, on: closeOverlay }], dismiss: closeOverlay });
+    S.panel = 'picker';
+    const cur = panelEl.querySelector('.levels .current');
+    if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' });
+  }
+  // 菜单：换模式、选关、设置都收在这里，游戏画面上只留一个按钮
+  function showMenu() {
+    if (S.busy || S.ending || S.replaying || S.adPlaying) return;
+    stopPlay();
+    const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:14px;width:100%';
+    const list = document.createElement('div'); list.className = 'modes-list';
+    ['level', 'daily', 'endless'].forEach((m, k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'mode-card' + (S.mode === m ? ' current' : '');
+      const ic = document.createElement('span'); ic.className = 'mi'; ic.innerHTML = [IC.box, IC.calendar, IC.conveyor][k];
+      const tx = document.createElement('span'); const bt = document.createElement('b'); bt.textContent = T.modes[k].name;
+      const ds = document.createElement('span'); ds.textContent = T.modes[k].desc + (m === 'daily' && streakNow() ? ` · 🔥${T.menu.streak(streakNow())}` : ''); tx.append(bt, ds);
+      b.append(ic, tx);
+      b.addEventListener('click', () => enterMode(m));
+      list.appendChild(b);
+    });
+    const set = document.createElement('div'); set.className = 'settings';
+    const mkBtn = (label, on) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.addEventListener('click', () => on(b)); set.appendChild(b); return b; };
+    mkBtn(T.menu.levels, () => showLevelPicker());
+    mkBtn(T.menu.restart, () => { hidePanel(); restart(); });
+    mkBtn(T.menu.sound(S.sound), (b) => { S.sound = !S.sound; store.set('bw.sound', S.sound); if (S.sound) ensureAudio(); b.textContent = T.menu.sound(S.sound); });
+    mkBtn(T.menu.nums(S.nums), (b) => { S.nums = !S.nums; store.set('bw.nums', S.nums); document.body.classList.toggle('show-nums', S.nums); b.textContent = T.menu.nums(S.nums); });
+    const lang = mkBtn(T.menu.lang, () => setLang(S.lang === 'zh' ? 'en' : 'zh'));
+    lang.style.gridColumn = '1 / -1';
+    const ver = document.createElement('div'); ver.className = 'ver'; ver.textContent = (window.BW_BUILD && window.BW_BUILD.ver) || T.ver;
+    wrap.append(list, set, ver);
+    showPanel({ title: T.menu.title, extra: wrap, actions: [{ label: T.menu.close, primary: true, on: closeOverlay }], dismiss: closeOverlay });
+    S.panel = 'menu';
+  }
+
+  // ---------- replay ----------
+  // 在一张新的同款纸上把 path 捏一遍给玩家看，放完回到原来的结算面板。
+  function replay() { if (S.daily.ref) replayLine(S.daily, S.daily.ref.path, S.daily.total); }
+  function replayLine(r, path, presses) {
+    if (S.replaying) return;
+    hidePanel();
+    S.replaying = true; S.hint = -1;
+    const view = newRun(r.d, r.startLv, r.startKind, presses);
+    const keep = { lv: r.lv, kind: r.kind, mark: r.mark };
+    const base = meterModel(r);
+    S.replayHud = { k: 0, n: path.length, score: 0, left: presses, meter: { ts: base.ts, at: base.at, marks: base.marks.map(() => ({ lit: false })) } };
+    S.shown = 0;
+    paint(view); fresh(); updateHUD(true);
+    showTip((S.mode === 'daily' ? T.expertReplayNote : T.replayingLevel) + '\n' + T.skipHint);
+    // 所有定时器都记在 bag 里：点一下跳过时一次清掉，再回到结算面板
+    const bag = [], later = (fn, ms) => bag.push(setTimeout(fn, ms));
+    let k = 0, score = 0, finished = false;
+    const finish = () => {
+      if (finished) return; finished = true;
+      bag.forEach(clearTimeout);
+      S.replaying = false; S.replayHud = null; S.replayAbort = null; S.hint = -1; tipEl.hidden = true;
+      Object.assign(r, keep); paint(r); updateHUD(true); showResult();
+    };
+    S.replayAbort = finish;
+    const step = () => {
+      if (k >= path.length) {
+        const spare = presses - k;
+        if (!E.alive(view.lv) && spare > 0) {
+          score += spare * E.LEFTOVER_POINTS;
+          popup(T.pop.early(spare, spare * E.LEFTOVER_POINTS), 'bonus');
+          S.replayHud.score = score; updateHUD();
+        }
+        later(finish, 1400);
+        return;
+      }
+      const i = path[k];
+      S.hint = i; paint(view);
+      later(() => {
+        S.hint = -1; ensureAudio();
+        animatePress(view, i, (res) => {
+          score += E.pointsFor(res.count, res.gold);
+          popup(T.pop.replay(k + 1, res.count), res.count >= 15 ? 'big' : '', T.pop.total(score));
+          if (res.count >= 20) shake(true); else if (res.count >= 10) shake(false);
+          k++;
+          Object.assign(S.replayHud, { k, score, left: presses - k });
+          S.replayHud.meter.marks.forEach((m, j) => { m.lit = score >= S.replayHud.meter.ts[j]; });
+          updateHUD();
+          later(step, 900);
+        }, bag);
+      }, 700);
+    };
+    later(step, 600);
+  }
+  // 回放中点泡泡纸、点提示条或按 Esc 都算跳过
+  const skipReplay = () => { if (S.replaying && S.replayAbort) { S.replayAbort(); return true; } return false; };
+  stageEl.addEventListener('click', skipReplay);
+
+  // ---------- controls ----------
+  function restart() {
+    if (S.busy || S.ending || S.replaying || S.adPlaying) return;
+    S.hint = -1;
+    const pending = !!run().pumping;
+    if (S.mode === 'level') startLevel(S.level.idx);
+    else if (S.mode === 'daily') { const watched = S.daily.watchedReplay; startDaily(); S.daily.watchedReplay = watched; }
+    else startEndless(S.endlessKind);
+    run().pumping = pending;
+    enterMode(S.mode);
+  }
+  function introTip(r) {
+    if (S.mode === 'level') return `${T.goal[r.def.goal.type](r.def.goal, r.def.presses)}\n${levelTip(r.def)}`;
+    return S.mode === 'daily' ? T.dailyNote : r.free ? T.endlessFree : T.endlessNote(ENDLESS.chainBonus, ENDLESS.bonus);
+  }
+  function enterMode(m) {
+    stopPlay();
+    if (m === 'daily' && (!S.daily || S.daily.key !== utcDayKey())) startDaily();
+    cells.forEach((c) => c.classList.remove('pressing')); pressIdx = -1;
+    S.mode = m; S.hint = -1;
+    store.set('bw.mode', m);
+    hidePanel();
+    const r = run();
+    if (m === 'level') S.hint = guideCell(r);
+    S.litKey = '';
+    paint(r); fresh(); updateHUD(true);
+    if (r.over) { showResult(); return; }
+    if (r.used === 0) showTip(introTip(r));
+    else tipEl.hidden = true;
+  }
+  function setEndlessKind(k) {
+    if (S.busy || S.ending || S.replaying || S.adPlaying || S.endlessKind === k) return;
+    S.endlessKind = k; store.set('bw.ek', k);
+    enterMode('endless');
+  }
+  function setLang(lang) {
+    if (S.busy || S.ending || S.replaying || S.adPlaying) return;
+    S.lang = lang; T = I18N[lang]; store.set('bw.lang', lang);
+    applyStaticText();
+    paint(run()); updateHUD(true);
+    if (!tipEl.hidden && !run().pumping && !S.replaying) showTip(introTip(run()));
+    if (S.panel === 'menu') showMenu();
+    else if (S.panel === 'picker') showLevelPicker();
+    else if (S.panel === 'result') showResult();
+  }
+  $('btn-menu').addEventListener('click', showMenu);
+  $('btn-restart').addEventListener('click', restart);
+  $('goal').addEventListener('click', () => {
+    if (S.replaying) return;
+    if (!tipEl.hidden) { tipEl.hidden = true; return; }
+    showTip(introTip(run()));
+  });
+  $('ek-weekly').addEventListener('click', () => setEndlessKind('weekly'));
+  $('ek-free').addEventListener('click', () => setEndlessKind('free'));
+  $('btn-hint').addEventListener('click', () => {
+    if (toolsLocked()) return;
+    const r = run();
+    const apply = () => { hint(); paint(run()); if (S.hint >= 0) popup(T.pop.hinted, 'bonus'); };
+    if (r.freeHints > 0) { r.freeHints--; if (S.mode === 'level') S.freeUsed[r.def.id] = true; apply(); syncTools(); } else rewarded(T.ad.hint, apply);
+  });
+  $('btn-undo').addEventListener('click', () => {
+    if (toolsLocked()) return;
+    if (!run().history.length) { popup(T.pop.nothingUndo, 'bonus'); return; }
+    rewarded(T.ad.undo, undo);
+  });
+  $('btn-pump').addEventListener('click', () => {
+    if (toolsLocked() || run().pumping) return;
+    rewarded(T.ad.pump, () => { run().pumping = true; S.hint = -1; paint(run()); showTip(T.pumping); syncTools(); });
+  });
+
+  // ---------- boot ----------
+  function start(data) {
+    data = data || {};
+    applyStaticText();
+    const saved = store.num('bw.level2', 0);
+    startLevel(Math.min(Math.max(0, saved | 0), unlockedUpTo() - 1));
+    startEndless('weekly');
+    startEndless('free');
+    const m = data.mode || store.pick('bw.mode', ['level', 'daily', 'endless'], 'level');
+    enterMode(['level', 'daily', 'endless'].includes(m) ? m : 'level');
+    try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ mode: S.mode })); } catch (e) {}
+  }
+  applyStaticText();
+  // 先等广告 SDK 初始化（失败或被拦截也照常进游戏），再开局并告诉平台加载完成。
+  const boot = (data) => Promise.resolve().then(() => ADS.init()).catch(() => {}).then(() => { start(data); try { ADS.loadingFinished(); } catch (e) {} });
+  const hot = window.claude && window.claude.hot;
+  if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
+})();
+</script>
+</body>
+</html>
