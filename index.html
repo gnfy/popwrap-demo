@@ -13,7 +13,7 @@
   --ink:#170f3a; --ink-soft:#6a5aa8; --on-dark-soft:#c9c0ff;
   --bar-top:#6c55e6; --bar-bot:#3e2ca3; --chip-bg:#34268a;
   --pink:#ff5fb8; --pink-deep:#e2479f; --cyan:#4ff0ff; --yellow:#ffd84a; --lime:#8cff5a;
-  --card:#f6f1ff; --card-line:#d9ccff; --field:#ebe4ff; --lilac-top:#ffffff; --lilac-bot:#e2d8ff;
+  --card:#f6f1ff; --card-top:#30247f; --card-bot:#1a1350; --card-line:#d9ccff; --field:#ebe4ff; --lilac-top:#ffffff; --lilac-bot:#e2d8ff;
   --gold-body:#ffcf3a; --gold-ink:#c98a00; --accent:#4ff0ff; --overlay:rgba(11,8,32,.74);
   --ratio:.75;
   --f-display:"ZCOOL KuaiLe","Baloo 2","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
@@ -100,22 +100,22 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
 .overlay{position:fixed; inset:0; z-index:15; background:var(--overlay); display:grid; place-items:center;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px)); animation:fade .2s ease-out}
 .card:focus{outline:none}
-.card{width:min(100%,380px); max-height:100%; overflow:auto; background:var(--card); color:var(--ink); border-radius:24px; padding:22px 20px 20px; border:4px solid var(--ink); box-shadow:0 8px 0 var(--ink); display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; animation:cardin .32s cubic-bezier(.3,1.5,.5,1); user-select:text; -webkit-user-select:text}
+.card{width:min(100%,380px); max-height:100%; overflow:auto; background:linear-gradient(180deg,var(--card-top),var(--card-bot)); color:#fff; border-radius:24px; padding:22px 20px 20px; border:4px solid var(--ink); box-shadow:inset 0 0 0 3px var(--card-bot),inset 0 0 0 5px rgba(79,240,255,.75),0 8px 0 var(--ink),0 0 42px rgba(79,240,255,.3); display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; animation:cardin .32s cubic-bezier(.3,1.5,.5,1); user-select:text; -webkit-user-select:text}
 @keyframes fade{from{opacity:0}}
 @keyframes cardin{from{transform:translateY(24px) scale(.94); opacity:0}}
-.card h2{margin:0; font:400 26px/1.15 var(--f-display); text-wrap:balance}
+.card h2{margin:0; font:400 26px/1.15 var(--f-display); text-wrap:balance; color:#fff; text-shadow:0 3px 0 var(--ink)}
 :root[lang^="en"] .card h2{font-weight:800}
-.card p{margin:0; color:var(--ink-soft); font-size:14px; text-wrap:balance}
+.card p{margin:0; color:var(--on-dark-soft); font-size:14px; text-wrap:balance}
 .r-stars{display:flex; gap:6px; align-items:flex-end; height:58px}
-.r-star{font-size:44px; line-height:1; color:#e4dbff; -webkit-text-stroke:2.5px var(--ink); transition:color .1s}
+.r-star{font-size:44px; line-height:1; color:#45379a; -webkit-text-stroke:2.5px var(--ink); transition:color .1s}
 .r-star:nth-child(2){font-size:56px}
-.r-star.on{color:var(--yellow); animation:stardrop .45s cubic-bezier(.3,1.6,.5,1)}
+.r-star.on{color:var(--yellow); filter:drop-shadow(0 0 10px rgba(255,216,74,.65)); animation:stardrop .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes stardrop{0%{transform:translateY(-40px) scale(1.6); opacity:0}100%{transform:none; opacity:1}}
-.stamp{border:3px solid var(--pink-deep); color:var(--pink-deep); border-radius:8px; padding:3px 12px; font:400 20px/1.2 var(--f-display); transform:rotate(-8deg); letter-spacing:.06em; opacity:0}
+.stamp{border:3px solid var(--ink); background:var(--pink); color:#fff; text-shadow:var(--outline); border-radius:12px; padding:4px 16px; font:400 22px/1.2 var(--f-display); transform:rotate(-8deg); letter-spacing:.06em; box-shadow:0 4px 0 var(--ink),0 0 22px rgba(255,95,184,.75); opacity:0}
 :root[lang^="en"] .stamp{font-weight:800; text-transform:uppercase}
 .stamp.on{animation:stamp .35s cubic-bezier(.3,1.6,.5,1) forwards}
 @keyframes stamp{0%{opacity:0; transform:rotate(-8deg) scale(2.2)}100%{opacity:.95; transform:rotate(-8deg) scale(1)}}
-.r-big{font:800 48px/1 var(--f-num); font-variant-numeric:tabular-nums}
+.r-big{font:800 48px/1 var(--f-num); font-variant-numeric:tabular-nums; color:#fff; text-shadow:var(--outline),0 5px 0 #ff3d9a}
 .card textarea{width:100%; resize:none; font:500 13px/1.5 var(--f-body); background:var(--field); color:var(--ink); border:2px solid var(--card-line); border-radius:10px; padding:8px 10px; text-align:left}
 .r-actions{display:flex; flex-direction:column; align-items:stretch; gap:12px; width:100%; margin-top:4px}
 .r-row{display:flex; flex-wrap:wrap; justify-content:center; gap:8px}
@@ -130,7 +130,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
 .levels .btn{flex-direction:column; gap:2px; padding:8px 0; font:800 17px/1 var(--f-num)}
 .levels .btn small{font:700 10px/1 var(--f-body); color:var(--gold-ink); letter-spacing:1px; min-height:10px}
 .levels .btn.current{background:var(--yellow); color:var(--ink)}
-.levels h3{grid-column:1/-1; margin:8px 0 0; font:700 12px var(--f-body); color:var(--ink-soft); letter-spacing:.06em; text-align:left}
+.levels h3{grid-column:1/-1; margin:8px 0 0; font:700 12px var(--f-body); color:var(--on-dark-soft); letter-spacing:.06em; text-align:left}
 .modes-list{display:flex; flex-direction:column; gap:12px; width:100%}
 .mode-card{appearance:none; border:3px solid var(--ink); display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:16px; background:var(--field); color:var(--ink); box-shadow:0 4px 0 var(--ink); cursor:pointer; text-align:left}
 .mode-card:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
@@ -141,16 +141,16 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
 .mode-card span{font-size:12.5px; color:var(--ink-soft)}
 .settings{display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%}
 .settings .btn{font-size:14px; padding:10px 8px}
-.ver{font-size:11px; color:var(--ink-soft)}
+.ver{font-size:11px; color:var(--on-dark-soft)}
 
 /* 模拟广告 */
 .ad{position:fixed; inset:0; z-index:20; background:var(--overlay); display:grid; place-items:center;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.ad-card{width:min(100%,320px); background:var(--card); color:var(--ink); border:4px solid var(--ink); box-shadow:0 8px 0 var(--ink); border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:10px; text-align:center}
+.ad-card{width:min(100%,320px); background:linear-gradient(180deg,var(--card-top),var(--card-bot)); color:#fff; border:4px solid var(--ink); box-shadow:inset 0 0 0 3px var(--card-bot),inset 0 0 0 5px rgba(79,240,255,.75),0 8px 0 var(--ink); border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:10px; text-align:center}
 .ad-count{font:800 64px/1 var(--f-num); color:var(--pink); -webkit-text-stroke:2px var(--ink)}
-.ad-track{height:8px; background:var(--card-line); border-radius:4px; overflow:hidden}
+.ad-track{height:8px; background:var(--ink); border-radius:4px; overflow:hidden}
 #ad-bar{height:100%; width:0; background:var(--pink)}
-.ad-card p{margin:0; font-size:13px; color:var(--ink-soft)}
+.ad-card p{margin:0; font-size:13px; color:var(--on-dark-soft)}
 
 @keyframes bump{40%{transform:scale(1.18)}}
 @keyframes starpop{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1)}}
@@ -264,8 +264,8 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
       tools: { hint: '提示', undo: '撤销', pump: '打气', dailyNote: '每日一张不能用道具，保证排名公平' },
       chipWeekly: '本周赛', chipFree: '随便捏',
       modes: [
-        { name: '关卡', desc: '60 个包裹，一关一关拆' },
-        { name: '每日一张', desc: '今日包裹，全世界同一张纸' },
+        { name: '关卡', desc: '60 关，一关比一关难' },
+        { name: '每日一张', desc: '每天一张新纸，全世界同一张' },
         { name: '无尽解压', desc: '传送带一张接一张，本周比总分' }
       ],
       menu: { streak: (n) => `连续 ${n} 天`, title: '菜单', levels: '选关', restart: '重来这一局', sound: (on) => `声音：${on ? '开' : '关'}`, nums: (on) => `显示数字：${on ? '开' : '关'}`, lang: '语言：中文 → English', close: '继续' },
@@ -322,13 +322,14 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
       ad: {
         inter: '模拟插屏广告', rewarded: '模拟激励视频', interReason: '关卡之间的插屏，没有奖励', reward: (r) => '看完获得：' + r,
         interNote: '真实插屏约 5 秒后可以关掉。开始玩 3 分钟内不弹，两次至少隔 2 分钟。', rewardedNote: '真实广告约 15–30 秒，这里缩短成 3 秒',
+        unavailable: '这次没放出广告，奖励没发，等一会儿再试。', blocked: '检测到广告拦截，🎬 道具和复活暂时用不了。',
         more: (n) => `再给 ${n} 下`, solution: '本关解法回放', expert: '高手解法回放', hint: '提示一个好下手的位置', undo: '撤销上一下', pump: '打气 1 次'
       },
       panel: {
-        stamp: '已送达', cleared: (i) => `第 ${i} 关 拆完了`, allCleared: (n) => `${n} 个包裹全部送达`, chapterDone: (c) => `${c} 完成`,
+        stamp: '过关！', cleared: (i) => `第 ${i} 关`, allCleared: (n) => `${n} 关全部通关`, chapterDone: (c) => `${c} 完成`,
         threeStars: (s) => `三星要 ${s} 分。试试先垫后爆，把连锁攒长。`, perfect: '三星！', nextChapter: (c) => `下一章：${c}`,
-        next: '下一个包裹', again: '再玩一次', levels: '选关', retry: '重来',
-        goldGoneTitle: '金泡泡不够了', close: (n) => `差一点！${n}`, failed: '这次没拆完',
+        next: '下一关', again: '再玩一次', levels: '选关', retry: '重来',
+        goldGoneTitle: '金泡泡不够了', close: (n) => `差一点！${n}`, failed: '这次没过关',
         goldGone: '有金泡泡被直接捏破，这关已经凑不齐了。金泡泡要靠连锁去带爆。',
         stuck: '卡住了？看一遍解法再来，注意它先垫哪里、最后从哪里引爆。',
         watchSolution: '看本关解法', watchAgain: '再看一遍解法',
@@ -343,7 +344,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
         endlessClose: (n) => `差一点！只剩 ${n} 个泡泡`, outOfPresses: '按压次数用完了',
         endlessLine: (c, m, free, b) => `捏完 ${c} 张 · 最长连锁 ${m} · ${free ? '最高' : '本周最高'} ${b}`,
         playAgain: '再来一局',
-        pickerTitle: '选关', pickerLine: (x, y) => `已拿 ${x} / ${y} 颗星。拆完一个解锁下一个。`, closeBtn: '关闭',
+        pickerTitle: '选关', pickerLine: (x, y) => `已拿 ${x} / ${y} 颗星。过一关解锁下一关。`, closeBtn: '关闭',
         levelAria: (i, locked, n) => `第 ${i} 关${locked ? '，未解锁' : n ? `，${n} 星` : ''}`, starsAria: (n) => `${n} 颗星`
       },
       share: {
@@ -362,8 +363,8 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
       tools: { hint: 'Hint', undo: 'Undo', pump: 'Pump', dailyNote: 'No power-ups in the daily, so the ranking stays fair' },
       chipWeekly: 'Weekly', chipFree: 'Free play',
       modes: [
-        { name: 'Levels', desc: '60 parcels to unwrap, one by one' },
-        { name: 'Daily', desc: 'Today\'s parcel, same sheet worldwide' },
+        { name: 'Levels', desc: '60 levels, each a little harder' },
+        { name: 'Daily', desc: 'A new sheet every day, same for everyone' },
         { name: 'Endless', desc: 'Sheets on a conveyor, weekly high score' }
       ],
       menu: { streak: (n) => `${n}-day streak`, title: 'Menu', levels: 'Levels', restart: 'Restart this run', sound: (on) => `Sound: ${on ? 'on' : 'off'}`, nums: (on) => `Numbers: ${on ? 'on' : 'off'}`, lang: 'Language: English → 中文', close: 'Resume' },
@@ -420,13 +421,14 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
       ad: {
         inter: 'Simulated interstitial', rewarded: 'Simulated rewarded video', interReason: 'Between-level ad, no reward', reward: (r) => 'Reward: ' + r,
         interNote: 'Real interstitials can be closed after about 5 s. None in the first 3 minutes, and at least 2 minutes apart.', rewardedNote: 'Real ads run 15–30 s. Shortened to 3 s here.',
+        unavailable: 'No ad played this time, so no reward. Try again in a bit.', blocked: 'An ad blocker is on, so 🎬 power-ups and extra presses are unavailable.',
         more: (n) => `${n} more presses`, solution: 'this level\'s solution', expert: 'the expert\'s solution', hint: 'a hint for a good move', undo: 'undo your last press', pump: 'one pump'
       },
       panel: {
-        stamp: 'Delivered', cleared: (i) => `Parcel ${i} unwrapped`, allCleared: (n) => `All ${n} parcels delivered`, chapterDone: (c) => `${c} complete`,
+        stamp: 'Clear!', cleared: (i) => `Level ${i}`, allCleared: (n) => `All ${n} levels complete`, chapterDone: (c) => `${c} complete`,
         threeStars: (s) => `3 stars needs ${s}. Prime first to build a longer chain.`, perfect: 'Three stars!', nextChapter: (c) => `Next up: ${c}`,
-        next: 'Next parcel', again: 'Play again', levels: 'Levels', retry: 'Retry',
-        goldGoneTitle: 'Not enough gold left', close: (n) => `So close! ${n}`, failed: 'Not unwrapped yet',
+        next: 'Next level', again: 'Play again', levels: 'Levels', retry: 'Retry',
+        goldGoneTitle: 'Not enough gold left', close: (n) => `So close! ${n}`, failed: 'Not this time',
         goldGone: 'A gold bubble was popped by hand, so this level can\'t be finished. Gold has to be popped by a chain.',
         stuck: 'Stuck? Watch the solution, then try again. Note where it primes and where it triggers.',
         watchSolution: 'Watch solution', watchAgain: 'Watch again',
@@ -441,7 +443,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
         endlessClose: (n) => `So close! Only ${n} bubbles left`, outOfPresses: 'Out of presses',
         endlessLine: (c, m, free, b) => `${c} sheets cleared · best chain ${m} · ${free ? 'best' : 'week best'} ${b}`,
         playAgain: 'Play again',
-        pickerTitle: 'Levels', pickerLine: (x, y) => `${x} / ${y} stars. Unwrap one to unlock the next.`, closeBtn: 'Close',
+        pickerTitle: 'Levels', pickerLine: (x, y) => `${x} / ${y} stars. Pass a level to unlock the next.`, closeBtn: 'Close',
         levelAria: (i, locked, n) => `Level ${i}${locked ? ', locked' : n ? `, ${n} stars` : ''}`, starsAria: (n) => `${n} stars`
       },
       share: {
@@ -468,7 +470,6 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     chain: svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
     calendar: svg('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
     conveyor: svg('<rect x="3" y="15" width="18" height="5" rx="2.5"/><rect x="7" y="6" width="10" height="7" rx="1.5"/>'),
-    box: svg('<path d="M4 8l8-4 8 4v9l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v9"/>'),
     coin: '<span class="coin"></span>'
   };
 
@@ -476,10 +477,13 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
   const STEP = reduceMotion ? 35 : 75, SLOW_STEP = reduceMotion ? 35 : 120, SLOW_AFTER = 20;
   const $ = (id) => document.getElementById(id);
 
-  // 本地存储可能被清空、被改坏或者类型不对：读的时候按类型校验，不合格就当没存过
+  // 本地存储可能被清空、被改坏或者类型不对：读的时候按类型校验，不合格就当没存过。
+  // LS 默认是 localStorage；平台提供云存档（CrazyGames 的 data 模块，接口一样）时在开局前换掉
+  let LS = null;
+  try { LS = window.localStorage; } catch (e) {}
   const store = {
-    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+    get(k, d) { try { const v = LS.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { LS.setItem(k, JSON.stringify(v)); } catch (e) {} },
     obj(k) { const v = store.get(k, null); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; },
     num(k, d) { const v = store.get(k, d); return typeof v === 'number' && isFinite(v) ? v : d; },
     pick(k, list, d) { const v = store.get(k, d); return list.indexOf(v) >= 0 ? v : d; }
@@ -500,6 +504,27 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     shown: 0, litKey: '', replayHud: null
   };
   let T = I18N[S.lang] || I18N.en;
+  // 换成平台存档以后，把设置和进度重新读一遍
+  function loadPrefs() {
+    S.lang = store.pick('bw.lang', ['zh', 'en'], null) || S.lang;
+    S.sound = store.get('bw.sound', true) !== false; S.nums = store.get('bw.nums', false) === true;
+    S.progress = cleanProgress(store.obj('bw.progress2'));
+    S.endlessKind = store.pick('bw.ek', ['weekly', 'free'], 'weekly');
+    T = I18N[S.lang] || I18N.en;
+  }
+  // 第一次用平台存档时，把这台设备上已有的本地存档搬过去（平台存档里已经有的不覆盖）
+  function adoptStorage() {
+    const st = ADS.storage;
+    if (!st) return;
+    try {
+      for (let k = 0; k < localStorage.length; k++) {
+        const key = localStorage.key(k);
+        if (key && key.startsWith('bw.') && st.getItem(key) == null) st.setItem(key, localStorage.getItem(key));
+      }
+    } catch (e) {}
+    LS = st;
+    loadPrefs();
+  }
   const fmt = (n) => Number(n).toLocaleString(T.locale);
   const run = () => (S.mode === 'endless' ? S.endless[S.endlessKind] : S[S.mode]);
   const adClock = { start: Date.now(), lastInter: 0, lastRewarded: 0, breaks: 0 };
@@ -515,18 +540,22 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
   function startPlay() { if (!S.playing) { S.playing = true; try { ADS.gameplayStart(); } catch (e) {} } }
   function stopPlay() { if (S.playing) { S.playing = false; try { ADS.gameplayStop(); } catch (e) {} } }
   // 广告期间：锁住所有输入（S.adPlaying），声音整个挂起
-  const mute = () => { S.adPlaying = true; setInert(); SND.setMuted(true); };
+  const block = () => { S.adPlaying = true; setInert(); };
+  const mute = () => { block(); SND.setMuted(true); };
   const unmute = () => { S.adPlaying = false; setInert(); SND.setMuted(false); };
   // 同一时间只放一条广告；奖励只发给发起请求的那一局，而且那一局状态没被换掉
   function rewarded(reason, grant) {
     if (S.adPlaying) return;
+    // 广告被拦截时不假装能看：直接告诉玩家为什么没有奖励
+    if (ADS.blocked) { popup(T.ad.blocked, 'warn'); return; }
     const r0 = run(), mode0 = S.mode;
-    stopPlay(); mute();
+    stopPlay(); block();
     let settled = false;
     ADS.rewarded(reason, (ok) => {
       if (settled) return; settled = true;
       unmute(); adClock.lastRewarded = Date.now();
       if (ok && run() === r0 && S.mode === mode0) grant();
+      else if (!ok) popup(T.ad.unavailable, 'warn');
     }, mute);
   }
 
@@ -639,7 +668,10 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
   // 声音由 view.js 里的合成器发出，这里只决定什么时候响
   const V = window.BW_VIEW, SND = V.sound;
   SND.setEnabled(S.sound);
-  function ensureAudio() { if (S.sound) SND.init(); }
+  function ensureAudio() { if (S.sound && !S.platformMuted) SND.init(); }
+  // iOS 从后台切回来音频会被挂起，只有在 touchend / click 这类手势里 resume 才算数（CrazyGames 技术要求）
+  document.addEventListener('touchend', ensureAudio, { passive: true });
+  document.addEventListener('click', ensureAudio);
   const popSound = (pitch, vol, delay) => SND.pop(1, pitch, vol, delay);
   const ding = (k) => SND.ding(k);
   const thump = () => SND.thud();
@@ -818,7 +850,9 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
   }
   function syncTools() {
     const r = run(), daily = S.mode === 'daily';
-    $('tools').hidden = daily; $('tools-note').hidden = !daily;
+    const blockedNote = ADS.blocked && !daily;
+    $('tools').hidden = daily; $('tools-note').hidden = !(daily || blockedNote);
+    $('tools-note').textContent = daily ? T.tools.dailyNote : blockedNote ? T.ad.blocked : '';
     const free = r.freeHints > 0;
     const b = $('badge-hint');
     b.textContent = free ? String(r.freeHints) : '🎬'; b.classList.toggle('vid', !free);
@@ -943,7 +977,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     }
     if (S.mode === 'endless') {
       adClock.breaks += AD_RULES.everyBreaks;
-      if (r.score > r.best) { r.best = r.score; store.set(r.bestKey, r.best); }
+      if (r.score > r.best) { if (r.best > 0 && ADS.celebrate) ADS.celebrate(); r.best = r.score; store.set(r.bestKey, r.best); }
     }
     S.ending = true;
     const show = () => { S.ending = false; if (run() === r && r.over && !S.replaying && overlayEl.hidden) showResult(); };
@@ -1023,7 +1057,8 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     const ok = kind !== 'retry' && unlockedUpTo() >= AD_RULES.minLevel && adClock.breaks >= AD_RULES.everyBreaks
       && now - adClock.start >= AD_RULES.startDelay && now - adClock.lastInter >= AD_RULES.gap && now - adClock.lastRewarded >= AD_RULES.afterRewarded;
     stopPlay();
-    if (ADS.managesFrequency) { mute(); ADS.interstitial(() => { unmute(); next(); }, mute); return; }
+    if (kind === 'retry') { next(); return; }
+    if (ADS.managesFrequency) { block(); ADS.interstitial(() => { unmute(); next(); }, mute); return; }
     if (!ok) { next(); return; }
     adClock.breaks = 0;
     mute();
@@ -1065,7 +1100,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     if (o.extra) add(o.extra);
     const acts = add(mk('div', 'r-actions'));
     const row = mk('div', 'r-row');
-    (o.actions || []).forEach((a, k) => {
+    (o.actions || []).filter((a) => !(a.ad && ADS.blocked)).forEach((a, k) => {
       const b = mk('button', 'btn' + (a.primary ? ' primary' : ''));
       b.type = 'button';
       if (a.ad) { const s = mk('span', '', '🎬'); s.setAttribute('aria-hidden', 'true'); b.appendChild(s); }
@@ -1120,6 +1155,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
         const stars = starsFor(r);
         if ((S.progress[def.id] || 0) < stars) { S.progress[def.id] = stars; store.set('bw.progress2', S.progress); }
         const last = r.idx >= LEVELS.length - 1;
+        if (last && !r.celebrated && ADS.celebrate) { r.celebrated = true; ADS.celebrate(); }
         const chapterEnd = (def.id % 15 === 0) && !last;
         const actions = [];
         if (!last) actions.push({ label: P.next, primary: true, on: () => afterBreak(() => { startLevel(r.idx + 1); enterMode('level'); }) });
@@ -1208,7 +1244,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     const list = document.createElement('div'); list.className = 'modes-list';
     ['level', 'daily', 'endless'].forEach((m, k) => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'mode-card' + (S.mode === m ? ' current' : '');
-      const ic = document.createElement('span'); ic.className = 'mi'; ic.innerHTML = [IC.box, IC.calendar, IC.conveyor][k];
+      const ic = document.createElement('span'); ic.className = 'mi'; ic.innerHTML = [IC.sheet, IC.calendar, IC.conveyor][k];
       const tx = document.createElement('span'); const bt = document.createElement('b'); bt.textContent = T.modes[k].name;
       const ds = document.createElement('span'); ds.textContent = T.modes[k].desc + (m === 'daily' && streakNow() ? ` · 🔥${T.menu.streak(streakNow())}` : ''); tx.append(bt, ds);
       b.append(ic, tx);
@@ -1219,7 +1255,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
     const mkBtn = (label, on) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.addEventListener('click', () => on(b)); set.appendChild(b); return b; };
     mkBtn(T.menu.levels, () => showLevelPicker());
     mkBtn(T.menu.restart, () => { hidePanel(); restart(); });
-    mkBtn(T.menu.sound(S.sound), (b) => { S.sound = !S.sound; store.set('bw.sound', S.sound); SND.setEnabled(S.sound); if (S.sound) ensureAudio(); b.textContent = T.menu.sound(S.sound); });
+    mkBtn(T.menu.sound(S.sound), (b) => { S.sound = !S.sound; store.set('bw.sound', S.sound); SND.setEnabled(S.sound && !S.platformMuted); if (S.sound) ensureAudio(); b.textContent = T.menu.sound(S.sound); });
     mkBtn(T.menu.nums(S.nums), (b) => { S.nums = !S.nums; store.set('bw.nums', S.nums); paint(run()); b.textContent = T.menu.nums(S.nums); });
     const lang = mkBtn(T.menu.lang, () => setLang(S.lang === 'zh' ? 'en' : 'zh'));
     lang.style.gridColumn = '1 / -1';
@@ -1371,7 +1407,11 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; 
   }
   applyStaticText();
   // 先等广告 SDK 初始化（失败或被拦截也照常进游戏），再开局并告诉平台加载完成。
-  const boot = (data) => Promise.resolve().then(() => ADS.init()).catch(() => {}).then(() => V.ready).then(() => { start(data); try { ADS.loadingFinished(); } catch (e) {} });
+  const boot = (data) => Promise.resolve().then(() => ADS.init()).catch(() => {}).then(() => V.ready).then(() => {
+    adoptStorage();
+    if (ADS.onPlatformMute) ADS.onPlatformMute((m) => { S.platformMuted = m; SND.setEnabled(S.sound && !m); });
+    SND.setEnabled(S.sound && !S.platformMuted);
+    start(data); try { ADS.loadingFinished(); } catch (e) {} });
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
 })();

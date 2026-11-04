@@ -511,6 +511,14 @@
       if (!r) return;
       const mx = r.bx + r.bw / 2, my = r.by + r.bh * 0.42;
       if (kind === 'huge' || kind === 'big') {
+        // 连锁计数还没淡完的话，让它飞进横幅里消失，不和横幅叠在一起
+        const ct = this.cnt;
+        if (ct && ct.visible) {
+          if (ct._tf) ct._tf.stop();
+          if (ct._tp) ct._tp.stop();
+          ct._fading = true;
+          ct._tf = this.tweens.add({ targets: ct, x: mx, y: my, scale: ct.scale * 1.3, alpha: 0, duration: 150, ease: 'Quad.easeIn', onComplete: () => ct.setVisible(false) });
+        }
         const huge = kind === 'huge', c = this.add.container(mx, my).setDepth(65);
         const main = this.add.text(0, 0, text, { fontFamily: F_UI, fontSize: Math.round((huge ? 52 : 40) * s) + 'px', fontStyle: 'bold', color: huge ? PAL.yellow : '#ffffff', stroke: PAL.ink, strokeThickness: Math.round((huge ? 12 : 10) * s) }).setOrigin(0.5);
         main.setShadow(0, 7 * s, '#ff3d9a', 0, true, false);
@@ -519,7 +527,11 @@
         if (small) c.add(this.add.text(0, (huge ? 50 : 40) * s, small, { fontFamily: F_NUM, fontSize: Math.round((huge ? 32 : 26) * s) + 'px', fontStyle: 'bold', color: PAL.cyan, stroke: PAL.ink, strokeThickness: Math.round(8 * s) }).setOrigin(0.5));
         c.setScale(0.3 * fit).setAlpha(0);
         this.tweens.add({ targets: c, scale: fit, alpha: 1, duration: 300, ease: 'Back.easeOut' });
-        this.tweens.add({ targets: c, y: my - 46 * s, alpha: 0, delay: huge ? 1100 : 850, duration: 420, ease: 'Quad.easeIn', onComplete: () => c.destroy() });
+        const stay = huge ? 1100 : 850;
+        this.tweens.add({ targets: c, y: my - 46 * s, alpha: 0, delay: stay, duration: 420, ease: 'Quad.easeIn', onComplete: () => c.destroy() });
+        // 记下横幅（连同下面那行加分）占到多低、留到什么时候，小提示要排在它下面
+        this.bannerBottom = my + (small ? (huge ? 70 : 57) : (huge ? 32 : 26)) * s * fit;
+        this.bannerUntil = this.time.now + stay + 420;
         this.emConfetti.explode(huge ? 46 : 18, mx, r.by + r.bh * 0.8);
         if (huge) {
           const fl = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0xffe6fa, 0.5).setOrigin(0).setDepth(90).setBlendMode(Phaser.BlendModes.ADD);
@@ -531,7 +543,10 @@
       const pill = kind === 'bonus' || kind === 'gold' || kind === 'warn';
       const color = kind === 'gold' ? PAL.yellow : kind === 'warn' ? '#ff8fb8' : kind === 'bonus' ? PAL.lime : '#ffffff';
       const size = pill ? 17 : 30, k = this.popups++;
-      const t = this.add.text(mx, my + (pill ? 60 + (k % 3) * 34 : 0) * s, small ? `${text}  ${small}` : text, { fontFamily: F_UI, fontSize: Math.round(size * s) + 'px', fontStyle: 'bold', color, stroke: PAL.ink, strokeThickness: Math.round((pill ? 5 : 8) * s), align: 'center', wordWrap: { width: r.bw * 0.95 } }).setOrigin(0.5).setDepth(62);
+      // 小提示默认在中间往下一点；有横幅在场时整体挪到横幅下面
+      let y0 = my + 60 * s;
+      if (pill && this.bannerUntil > this.time.now) y0 = Math.max(y0, this.bannerBottom + 30 * s);
+      const t = this.add.text(mx, pill ? y0 + (k % 3) * 34 * s : my, small ? `${text}  ${small}` : text, { fontFamily: F_UI, fontSize: Math.round(size * s) + 'px', fontStyle: 'bold', color, stroke: PAL.ink, strokeThickness: Math.round((pill ? 5 : 8) * s), align: 'center', wordWrap: { width: r.bw * 0.95 } }).setOrigin(0.5).setDepth(62);
       t.setScale(0.7);
       this.tweens.add({ targets: t, scale: 1, duration: 160, ease: 'Back.easeOut' });
       this.tweens.add({ targets: t, y: t.y - 46 * s, alpha: 0, delay: pill ? 700 : 500, duration: 600, ease: 'Cubic.easeIn', onComplete: () => { t.destroy(); this.popups = Math.max(0, this.popups - 1); } });
@@ -606,6 +621,7 @@
   let game = null, board = null;
   function boot() {
     const fx = document.getElementById('fx');
+    if (!fx) return;   // 封面、预告片之类的页面只借用画图函数，不开游戏画布
     game = new Phaser.Game({
       type: Phaser.WEBGL, parent: fx, transparent: true,
       width: Math.round(innerWidth * DPR), height: Math.round(innerHeight * DPR),
@@ -662,5 +678,7 @@
       return Math.hypot(x - p.x, y - p.y) <= r.cell * 0.52 ? i : -1;
     },
   };
+  // 画图函数给封面、预告片页面复用
+  window.BW_ART = { PAL, TEX, canvas, toonBubble, bubbleArt, crumpleArt, tapeArt, coin, sparkle, circuitArt, roundRect, makeTextures, trayArt };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
