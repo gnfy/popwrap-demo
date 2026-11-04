@@ -5,57 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Popwrap</title>
 <meta name="robots" content="noindex, nofollow">
-<script>window.BW_BUILD = {"platform":"web","ver":"Popwrap v1.0 · demo, ads are simulated"};</script>
+<script>window.BW_BUILD = {"platform":"web","ver":"Popwrap v1.1 · demo, ads are simulated"};</script>
 <style>
-/* Layout: a game screen on cardboard — a packing-tape HUD (menu, level, star meter, moves), a goal chip, the bubble sheet as the hero, three round power-ups; menus and results float above in a card */
+/* 画面：深靛蓝夜色 + 霓虹粉、青、黄点缀，按钮和面板都有一圈深色粗描边（卡通风）。
+   泡泡纸本身由 view.js 用 Phaser 画在 #sheet 的位置上；这里管状态栏、道具、菜单和结算卡。 */
 :root{
-  --kraft:#cfab7c; --kraft-fiber:rgba(92,60,24,.08);
-  --ink:#2a1f14; --ink-soft:#5e4831;
-  --tape:#cf3427; --tape-dark:#972016; --tape-ink:#fff6ec;
-  --card:#fbf8f1; --card-line:#e2d6c0; --field:#f2ebdf; --btn-shade:rgba(92,60,24,.32);
-  --sheet:rgba(236,246,255,.45); --sheet-edge:rgba(255,255,255,.7);
-  --bub-hi:#ffffff; --bub-body:rgba(208,230,247,.94); --bub-edge:rgba(92,128,165,.55); --bub-shade:rgba(66,100,136,.30);
-  --gold-body:rgba(248,214,118,.96); --gold-edge:rgba(164,112,20,.65); --gold-ink:#a86b00; --star:#f5b72c;
-  --packtape:rgba(176,124,58,.62); --packtape-line:rgba(120,80,30,.35);
-  --flat:rgba(96,118,140,.34);
-  --big-body:rgba(204,236,224,.95); --big-edge:rgba(40,132,104,.6); --big-glow:rgba(40,132,104,.2); --gap:rgba(255,255,255,.6);
-  --accent:#1d5c9b; --ok:#2f7d4f;
-  --shadow:rgba(40,24,8,.22); --overlay:rgba(30,22,14,.62);
+  --ink:#170f3a; --ink-soft:#6a5aa8; --on-dark-soft:#c9c0ff;
+  --bar-top:#6c55e6; --bar-bot:#3e2ca3; --chip-bg:#34268a;
+  --pink:#ff5fb8; --pink-deep:#e2479f; --cyan:#4ff0ff; --yellow:#ffd84a; --lime:#8cff5a;
+  --card:#f6f1ff; --card-line:#d9ccff; --field:#ebe4ff; --lilac-top:#ffffff; --lilac-bot:#e2d8ff;
+  --gold-body:#ffcf3a; --gold-ink:#c98a00; --accent:#4ff0ff; --overlay:rgba(11,8,32,.74);
   --ratio:.75;
   --f-display:"ZCOOL KuaiLe","Baloo 2","Arial Rounded MT Bold","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
   --f-num:"Baloo 2","Arial Rounded MT Bold",ui-rounded,system-ui,sans-serif;
   --f-body:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --kraft:#2f261d; --kraft-fiber:rgba(255,220,170,.035);
-    --ink:#f3e7d6; --ink-soft:#c6b294;
-    --tape:#b92f25; --tape-dark:#6e1a13; --tape-ink:#fff1e6;
-    --card:#3a3027; --card-line:#58493b; --field:#2c241c; --btn-shade:rgba(0,0,0,.5);
-    --sheet:rgba(190,215,240,.08); --sheet-edge:rgba(210,230,250,.16);
-    --bub-hi:rgba(255,255,255,.92); --bub-body:rgba(150,190,226,.30); --bub-edge:rgba(190,220,250,.48); --bub-shade:rgba(0,0,0,.38);
-    --gold-body:rgba(240,196,92,.55); --gold-edge:rgba(255,214,120,.7); --gold-ink:#f2c45a; --star:#f2c45a;
-    --packtape:rgba(196,146,80,.42); --packtape-line:rgba(255,220,170,.18);
-    --flat:rgba(190,210,230,.20);
-    --big-body:rgba(140,220,190,.32); --big-edge:rgba(150,230,200,.62); --big-glow:rgba(150,230,200,.16); --gap:rgba(20,16,12,.55);
-    --accent:#86bcef; --ok:#7fd3a0;
-    --shadow:rgba(0,0,0,.45); --overlay:rgba(8,6,4,.72);
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --kraft:#2f261d; --kraft-fiber:rgba(255,220,170,.035);
-  --ink:#f3e7d6; --ink-soft:#c6b294;
-  --tape:#b92f25; --tape-dark:#6e1a13; --tape-ink:#fff1e6;
-  --card:#3a3027; --card-line:#58493b; --field:#2c241c; --btn-shade:rgba(0,0,0,.5);
-  --sheet:rgba(190,215,240,.08); --sheet-edge:rgba(210,230,250,.16);
-  --bub-hi:rgba(255,255,255,.92); --bub-body:rgba(150,190,226,.30); --bub-edge:rgba(190,220,250,.48); --bub-shade:rgba(0,0,0,.38);
-  --gold-body:rgba(240,196,92,.55); --gold-edge:rgba(255,214,120,.7); --gold-ink:#f2c45a; --star:#f2c45a;
-  --packtape:rgba(196,146,80,.42); --packtape-line:rgba(255,220,170,.18);
-  --flat:rgba(190,210,230,.20);
-  --big-body:rgba(140,220,190,.32); --big-edge:rgba(150,230,200,.62); --big-glow:rgba(150,230,200,.16); --gap:rgba(20,16,12,.55);
-  --accent:#86bcef; --ok:#7fd3a0;
-  --shadow:rgba(0,0,0,.45); --overlay:rgba(8,6,4,.72);
+  /* 白字外面描一圈深色边 */
+  --outline:0 2px 0 var(--ink),2px 0 0 var(--ink),-2px 0 0 var(--ink),0 -2px 0 var(--ink),1.5px 1.5px 0 var(--ink),-1.5px 1.5px 0 var(--ink),1.5px -1.5px 0 var(--ink),-1.5px -1.5px 0 var(--ink);
   color-scheme:dark;
 }
 :root[lang^="en"]{--f-display:"Baloo 2","Arial Rounded MT Bold",ui-rounded,system-ui,sans-serif}
@@ -63,189 +28,132 @@
 [hidden]{display:none!important}
 html,body{height:100%; overscroll-behavior:none}
 body{
-  margin:0; color:var(--ink); font:15px/1.5 var(--f-body);
-  background-color:var(--kraft);
-  background-image:repeating-linear-gradient(87deg,var(--kraft-fiber) 0 1px,transparent 1px 7px),repeating-linear-gradient(-4deg,var(--kraft-fiber) 0 1px,transparent 1px 11px);
+  margin:0; color:#fff; font:15px/1.5 var(--f-body);
+  background-color:#14113a;
+  background-image:var(--circuit, linear-gradient(transparent,transparent)),radial-gradient(circle at 100% 0%,rgba(255,95,184,.3),transparent 46%),radial-gradient(circle at 0% 100%,rgba(79,240,255,.2),transparent 46%),linear-gradient(#272f78,#1a1a52 55%,#100c30);
+  background-size:384px 384px,auto,auto,auto; background-attachment:fixed;
   padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
   overflow-x:hidden; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;
 }
+/* Phaser 的画布：铺满窗口、叠在网页上面、不挡点击 */
+#fx{position:fixed; inset:0; z-index:10; pointer-events:none}
+#fx canvas{display:block}
 /* --pill：平台在左上角盖了自己的按钮时（Poki 手机版），竖屏把整列往下让出这么多 */
-.app{max-width:480px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; gap:10px; padding-block:calc(10px + var(--pill, 0px)) 12px}
-svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; flex:none}
+.app{max-width:480px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; gap:12px; padding-block:calc(12px + var(--pill, 0px)) 14px}
+svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; flex:none}
 
-/* HUD: a strip of red packing tape */
-.hud{display:flex; align-items:center; gap:10px; background:var(--tape); color:var(--tape-ink); padding:8px 12px 9px; border-radius:10px; transform:rotate(-.6deg); box-shadow:0 4px 0 var(--tape-dark);
-  background-image:repeating-linear-gradient(90deg,transparent 0 14px,rgba(255,255,255,.05) 14px 15px)}
+/* 状态栏：紫色卡通面板 */
+.hud{display:flex; align-items:center; gap:10px; color:#fff; padding:6px 10px 7px; border-radius:24px; border:3.5px solid var(--ink); box-shadow:0 5px 0 var(--ink);
+  background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16)) top/100% 38% no-repeat,linear-gradient(var(--bar-top),var(--bar-bot))}
 .hud-btn{appearance:none; border:0; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.18); color:inherit; display:grid; place-items:center; font-size:20px; cursor:pointer; flex:none}
 .hud-btn:active{transform:scale(.92)}
 .hud-title{display:flex; flex-direction:column; align-items:center; line-height:1; min-width:44px; flex:none}
-.hud-title small{font:700 10px/1 var(--f-body); letter-spacing:.12em; text-transform:uppercase; opacity:.85}
-.hud-title b{font:800 26px/1 var(--f-num); margin-top:2px; white-space:nowrap}
-.meter{position:relative; flex:1; min-width:0; height:20px; border-radius:999px; background:rgba(0,0,0,.24); box-shadow:inset 0 2px 0 rgba(0,0,0,.18)}
-.meter-fill{position:absolute; inset:0 auto 0 0; width:0; border-radius:999px; background:var(--star); transition:width .25s ease-out}
-.meter-mark{position:absolute; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; display:grid; place-items:center; font-size:22px; line-height:1; color:rgba(90,20,10,.35); -webkit-text-stroke:1.5px rgba(255,255,255,.85)}
+.hud-title small{font:700 10px/1 var(--f-body); letter-spacing:.12em; text-transform:uppercase; color:#d9ccff}
+.hud-title b{font:800 26px/1 var(--f-num); margin-top:2px; white-space:nowrap; text-shadow:var(--outline)}
+.meter{position:relative; flex:1; min-width:0; height:20px; border-radius:999px; background:#140c3a; box-shadow:inset 0 2px 0 rgba(0,0,0,.35)}
+.meter-fill{position:absolute; inset:0 auto 0 0; width:0; border-radius:999px; background:linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,0) 60%),var(--pink); transition:width .25s ease-out}
+.meter-mark{position:absolute; top:50%; width:24px; height:24px; margin:-12px 0 0 -12px; display:grid; place-items:center; font-size:22px; line-height:1; color:#2a1f6e; -webkit-text-stroke:1.5px #b8a8ff}
 .meter-mark.goal{font-size:17px}
-.meter-mark.lit{color:#ffd23f; -webkit-text-stroke:1px #8a4b00; text-shadow:0 0 8px rgba(255,214,90,.8)}
+.meter-mark.lit{color:var(--yellow); -webkit-text-stroke:1.5px var(--ink); text-shadow:0 0 8px rgba(255,216,74,.8)}
 .meter-mark.flash{animation:starpop .5s ease-out}
 .meter-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:flex-start; padding-left:3px; font:800 13px/1 var(--f-num); letter-spacing:.02em; font-variant-numeric:tabular-nums; pointer-events:none}
-.meter-label span{background:rgba(70,14,8,.62); color:#fff; border-radius:999px; padding:2px 8px 1px; min-width:28px; text-align:center}
-.moves{flex:none; width:50px; height:50px; border-radius:50%; background:var(--card); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 3px 0 var(--btn-shade),inset 0 0 0 3px var(--star); line-height:1}
-.moves b{font:800 24px/1 var(--f-num); font-variant-numeric:tabular-nums}
+.meter-label span{background:rgba(23,15,58,.82); color:#fff; border-radius:999px; padding:2px 8px 1px; min-width:28px; text-align:center}
+.moves{flex:none; width:50px; height:50px; border-radius:50%; background:#fff; color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; border:3px solid var(--ink); box-shadow:0 4px 0 var(--ink),inset 0 0 0 3px var(--cyan); line-height:1}
+.moves b{font:800 22px/1 var(--f-num); font-variant-numeric:tabular-nums}
 .moves small{font:700 9px/1 var(--f-body); color:var(--ink-soft); letter-spacing:.08em; margin-top:1px}
-.moves.low{box-shadow:0 3px 0 var(--btn-shade),inset 0 0 0 3px var(--tape)}
+.moves.low{box-shadow:0 4px 0 var(--ink),inset 0 0 0 3px var(--pink)}
 .moves.bump{animation:bump .3s ease-out}
 
-/* Goal chip row */
-.goalbar{display:flex; align-items:center; gap:8px; min-height:38px}
-.chip-goal{appearance:none; border:0; display:inline-flex; align-items:center; gap:7px; padding:7px 14px 7px 10px; border-radius:999px; background:var(--card); color:var(--ink); font:700 14px/1.1 var(--f-body); box-shadow:0 3px 0 var(--btn-shade); cursor:pointer; min-width:0}
-.chip-goal .gi{font-size:18px; color:var(--accent); display:grid; place-items:center}
-.chip-goal .gi .coin{width:16px; height:16px; border-radius:50%; background:var(--gold-body); box-shadow:inset 0 0 0 2px var(--gold-edge)}
-.chip-goal.ok{color:var(--ok)} .chip-goal.ok .gi{color:var(--ok)}
+/* 目标签这一行 */
+.goalbar{display:flex; align-items:center; gap:8px; min-height:42px}
+.chip-goal{appearance:none; border:3px solid var(--ink); display:inline-flex; align-items:center; gap:7px; padding:6px 14px 6px 10px; border-radius:999px; background:var(--chip-bg); color:#fff; font:700 14px/1.1 var(--f-body); box-shadow:0 4px 0 var(--ink); cursor:pointer; min-width:0}
+.chip-goal .gi{font-size:18px; color:var(--cyan); display:grid; place-items:center}
+.chip-goal .gi .coin{width:16px; height:16px; border-radius:50%; background:var(--gold-body); box-shadow:inset 0 0 0 2px var(--ink)}
+.chip-goal.ok{color:var(--lime)} .chip-goal.ok .gi{color:var(--lime)}
 .chip-goal span:last-child{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .chips{display:flex; gap:6px}
-.chip{appearance:none; border:0; background:transparent; color:var(--ink-soft); border-radius:999px; padding:6px 10px; font:700 12px var(--f-body); cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--ink); color:var(--card)}
+.chip{appearance:none; border:2.5px solid transparent; background:transparent; color:var(--on-dark-soft); border-radius:999px; padding:5px 10px; font:700 12px var(--f-body); cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--pink); color:#fff; border-color:var(--ink)}
 .goalbar .spacer{flex:1}
-.round{appearance:none; border:0; width:40px; height:40px; border-radius:50%; background:var(--card); color:var(--ink); display:grid; place-items:center; font-size:19px; box-shadow:0 3px 0 var(--btn-shade); cursor:pointer; flex:none}
-.round:active{transform:translateY(2px); box-shadow:0 1px 0 var(--btn-shade)}
+.round{appearance:none; border:3px solid var(--ink); width:42px; height:42px; border-radius:50%; background:linear-gradient(var(--lilac-top),var(--lilac-bot)); color:var(--ink); display:grid; place-items:center; font-size:19px; box-shadow:0 4px 0 var(--ink); cursor:pointer; flex:none}
+.round:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
 
-/* The bubble sheet */
-.stage{position:relative; width:min(100%,460px,max(200px,calc((100vh - 250px - var(--pill, 0px)) * var(--ratio)))); margin:0 auto}
-.sheet{
-  display:grid; grid-template-columns:repeat(6,1fr); gap:clamp(2px,1vw,6px); padding:clamp(8px,3vw,14px);
-  background-color:var(--sheet);
-  background-image:linear-gradient(118deg,transparent 28%,var(--sheet-edge) 42%,transparent 56%);
-  border-radius:16px; box-shadow:inset 0 0 0 1px var(--sheet-edge),0 8px 22px var(--shadow);
-  touch-action:manipulation;
-}
-.sheet.shake{animation:shake .32s ease-out}
-.sheet.shake-big{animation:shake-big .5s ease-out}
-.bubble{appearance:none; border:0; padding:0; margin:0; background:transparent; position:relative; aspect-ratio:1; cursor:pointer; touch-action:manipulation; border-radius:50%; color:inherit; font:inherit}
-.bubble::before{
-  content:""; position:absolute; inset:5%; border-radius:50%;
-  background:radial-gradient(circle at 33% 28%,var(--bub-hi) 0 10%,transparent 11.5%),radial-gradient(circle at 62% 70%,transparent 0 46%,var(--bub-shade) 74%),var(--bub-body);
-  box-shadow:inset 0 0 0 1.5px var(--bub-edge),0 2px 3px var(--shadow);
-  transform:scale(var(--s,1)); transition:transform .16s cubic-bezier(.3,1.7,.5,1),opacity .16s;
-}
-.bubble::after{content:""; position:absolute; inset:8%; border-radius:50%; pointer-events:none; opacity:0}
-.lv1{--s:.64} .lv1::before{opacity:.75}
-.lv2{--s:.82}
-.lv3{--s:1}
-.lv3::before{animation:wobble 1.7s ease-in-out infinite; animation-delay:var(--d,0s)}
-.gold::before{background:radial-gradient(circle at 33% 28%,var(--bub-hi) 0 10%,transparent 11.5%),radial-gradient(circle at 62% 70%,transparent 0 46%,var(--bub-shade) 78%),var(--gold-body); box-shadow:inset 0 0 0 2px var(--gold-edge),0 2px 4px var(--shadow)}
-.gold.lv1::before{opacity:1}
-.double::before{box-shadow:inset 0 0 0 1.5px var(--bub-edge),0 0 0 2.5px var(--gap),0 0 0 4.5px var(--bub-edge),0 2px 4px var(--shadow)}
-.double.lv1::before{opacity:1}
-.big::before{background:radial-gradient(circle at 33% 28%,var(--bub-hi) 0 10%,transparent 11.5%),radial-gradient(circle at 62% 70%,transparent 0 46%,var(--bub-shade) 78%),var(--big-body); box-shadow:inset 0 0 0 2px var(--big-edge),0 0 0 4px var(--big-glow),0 2px 4px var(--shadow)}
-.big.lv1::before{opacity:1}
-.lv0{cursor:default}
-.lv0::before{background:radial-gradient(circle at 50% 50%,transparent 0 50%,var(--flat) 54% 64%,transparent 68%); box-shadow:none; border-radius:47% 53% 44% 56%/55% 45% 55% 45%; transform:scale(.8); opacity:1}
-.lv0.got::before{background:radial-gradient(circle at 50% 50%,var(--gold-body) 0 22%,transparent 24% 50%,var(--gold-edge) 54% 62%,transparent 66%)}
-.lv0.lost::before{background:radial-gradient(circle at 50% 50%,transparent 0 50%,var(--tape) 54% 60%,transparent 64%); opacity:.55}
-.taped{cursor:default}
-.taped::before{inset:30% -3%; border-radius:1px; transform:rotate(-14deg); box-shadow:none; opacity:1;
-  background:repeating-linear-gradient(90deg,transparent 0 5px,var(--packtape-line) 5px 6px),var(--packtape)}
-.bubble.pressing::before{transform:scale(calc(var(--s,1) * .84))!important; animation:none!important; filter:brightness(.96)}
-.burst::before{animation:squash .22s ease-out}
-.burst::after{border:2px solid var(--bub-hi); animation:ring .42s ease-out}
-.burst.gold::after{border-color:var(--gold-edge)}
-.fresh::before{animation:inflate .4s cubic-bezier(.3,1.6,.5,1) backwards; animation-delay:var(--fd,0s)}
-.hint::after{opacity:1; inset:-3%; border:3px dashed var(--accent); animation:spin 4s linear infinite}
-.pumping .lv1::after,.pumping .lv2::after{opacity:1; inset:0; border:2px dotted var(--accent)}
-.bubble .n{position:absolute; inset:0; display:none; place-items:center; font:800 clamp(12px,3.6vw,16px)/1 var(--f-num); color:var(--ink)}
-.show-nums .bubble .n{display:grid}
-.bubble:focus-visible{outline:3px solid var(--accent); outline-offset:-3px}
-.frag{position:absolute; left:50%; top:50%; width:7px; height:4px; margin:-2px 0 0 -3px; border-radius:1px; background:var(--bub-edge); pointer-events:none; animation:frag .5s ease-out forwards}
-.frag.g{background:var(--gold-edge)}
-@keyframes frag{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)); opacity:0}}
-@keyframes wobble{0%,100%{transform:scale(1)}50%{transform:scale(1.04,.965)}}
-@keyframes squash{0%{transform:scale(1.18)}100%{transform:scale(.8)}}
-@keyframes ring{0%{transform:scale(.7);opacity:.95}100%{transform:scale(1.65);opacity:0}}
-@keyframes inflate{from{transform:scale(.15);opacity:0}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shake{20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0)}80%{transform:translate(2px,1px)}}
-@keyframes shake-big{10%{transform:translate(-6px,2px) rotate(-.4deg)}25%{transform:translate(6px,-2px) rotate(.4deg)}40%{transform:translate(-5px,1px)}55%{transform:translate(4px,-1px)}70%{transform:translate(-3px,1px)}85%{transform:translate(2px,0)}}
-@keyframes bump{40%{transform:scale(1.18)}}
-@keyframes starpop{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1)}}
+/* 泡泡纸的位置：#sheet 是个透明的占位，Phaser 在它上面画泡泡纸，点击也是它收 */
+.stage{position:relative; width:min(100%,460px,max(200px,calc((100vh - 260px - var(--pill, 0px)) * var(--ratio)))); margin:0 auto}
+.sheet{aspect-ratio:var(--ratio); width:100%; touch-action:none; outline:none}
 
-/* Floating words over the sheet */
-.popup{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; pointer-events:none}
-.pop-text{font:400 clamp(24px,7.5vw,36px)/1 var(--f-display); color:var(--accent); background:var(--card); padding:8px 18px; border-radius:999px; box-shadow:0 6px 16px var(--shadow); animation:rise 1.1s ease-out forwards; white-space:nowrap}
-:root[lang^="en"] .pop-text{font-weight:800}
-.pop-text small{font:800 .55em var(--f-num); color:var(--ink-soft); margin-left:8px}
-.pop-text.big{font-size:clamp(32px,10vw,48px); color:var(--tape)}
-.pop-text.huge{font-size:clamp(40px,13vw,64px); color:var(--tape); background:var(--star); animation-duration:1.4s}
-.pop-text.huge small{color:var(--tape-dark)}
-.pop-text.bonus,.pop-text.gold,.pop-text.warn{font:700 14px/1 var(--f-body); padding:8px 12px}
-.pop-text.bonus{color:var(--ink)} .pop-text.gold{color:var(--gold-ink)} .pop-text.warn{color:var(--tape)}
-@keyframes rise{0%{transform:translateY(8px) scale(.7);opacity:0}15%{transform:translateY(0) scale(1.05);opacity:1}70%{opacity:1}100%{transform:translateY(-26px) scale(1);opacity:0}}
-.tip{position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); width:max-content; max-width:min(92%,360px); background:var(--card); color:var(--ink); border-radius:14px; padding:9px 13px; font-size:13.5px; line-height:1.45; box-shadow:0 6px 18px var(--shadow),0 0 0 2px var(--star); text-wrap:balance; white-space:pre-line; z-index:12; animation:tipin .3s ease-out; cursor:pointer}
+/* 道具 */
+.tools{display:flex; justify-content:center; gap:22px; padding-top:4px}
+.tool{appearance:none; border:0; background:none; color:#fff; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer; font:700 12.5px/1 var(--f-body); padding:0; text-shadow:var(--outline)}
+.tool-ic{position:relative; width:58px; height:58px; border-radius:50%; background:linear-gradient(var(--lilac-top),var(--lilac-bot)); color:var(--ink); display:grid; place-items:center; font-size:26px; border:3px solid var(--ink); box-shadow:0 5px 0 var(--ink); text-shadow:none}
+.tool:active .tool-ic{transform:translateY(4px); box-shadow:0 1px 0 var(--ink)}
+.tool-badge{position:absolute; right:-9px; top:-9px; min-width:26px; height:26px; padding:0 5px; border-radius:999px; background:var(--yellow); color:var(--ink); display:grid; place-items:center; font:800 13px/1 var(--f-num); border:2.5px solid var(--ink)}
+.tool-badge.vid{background:var(--pink); font-size:13px}
+.tool.dim .tool-ic{opacity:.6}
+.tools-note{text-align:center; font-size:13px; color:var(--on-dark-soft); padding:14px 0}
+
+/* 提示条 */
+.tip{position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); width:max-content; max-width:min(92%,360px); background:var(--card); color:var(--ink); border-radius:16px; padding:9px 13px; font-size:13.5px; line-height:1.45; border:3px solid var(--ink); box-shadow:0 5px 0 var(--ink); text-wrap:balance; white-space:pre-line; z-index:12; animation:tipin .3s ease-out; cursor:pointer}
 @keyframes tipin{from{opacity:0; transform:translate(-50%,10px)}}
 
-/* Power-ups */
-.tools{display:flex; justify-content:center; gap:22px; padding-top:2px}
-.tool{appearance:none; border:0; background:none; color:var(--ink); display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; font:700 12px/1 var(--f-body); padding:0}
-.tool-ic{position:relative; width:58px; height:58px; border-radius:50%; background:var(--card); display:grid; place-items:center; font-size:26px; box-shadow:0 4px 0 var(--btn-shade)}
-.tool:active .tool-ic{transform:translateY(3px); box-shadow:0 1px 0 var(--btn-shade)}
-.tool-badge{position:absolute; right:-6px; top:-6px; min-width:24px; height:24px; padding:0 5px; border-radius:999px; background:var(--star); color:#4a2f00; display:grid; place-items:center; font:800 13px/1 var(--f-num); box-shadow:0 2px 0 var(--btn-shade)}
-.tool-badge.vid{background:var(--card); font-size:14px; box-shadow:0 0 0 2px var(--star),0 2px 0 var(--btn-shade)}
-.tool.dim .tool-ic{opacity:.72}
-.tools-note{text-align:center; font-size:13px; color:var(--ink-soft); padding:14px 0}
-
-/* Floating card: results, menu, level map */
+/* 浮在上面的卡片：结算、菜单、选关 */
 .overlay{position:fixed; inset:0; z-index:15; background:var(--overlay); display:grid; place-items:center;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px)); animation:fade .2s ease-out}
 .card:focus{outline:none}
-.card{width:min(100%,380px); max-height:100%; overflow:auto; background:var(--card); color:var(--ink); border-radius:22px; padding:22px 20px 20px; box-shadow:0 18px 40px var(--shadow); display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; animation:cardin .32s cubic-bezier(.3,1.5,.5,1); user-select:text; -webkit-user-select:text}
+.card{width:min(100%,380px); max-height:100%; overflow:auto; background:var(--card); color:var(--ink); border-radius:24px; padding:22px 20px 20px; border:4px solid var(--ink); box-shadow:0 8px 0 var(--ink); display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; animation:cardin .32s cubic-bezier(.3,1.5,.5,1); user-select:text; -webkit-user-select:text}
 @keyframes fade{from{opacity:0}}
 @keyframes cardin{from{transform:translateY(24px) scale(.94); opacity:0}}
 .card h2{margin:0; font:400 26px/1.15 var(--f-display); text-wrap:balance}
 :root[lang^="en"] .card h2{font-weight:800}
 .card p{margin:0; color:var(--ink-soft); font-size:14px; text-wrap:balance}
 .r-stars{display:flex; gap:6px; align-items:flex-end; height:58px}
-.r-star{font-size:44px; line-height:1; color:var(--card-line); transition:color .1s}
+.r-star{font-size:44px; line-height:1; color:#e4dbff; -webkit-text-stroke:2.5px var(--ink); transition:color .1s}
 .r-star:nth-child(2){font-size:56px}
-.r-star.on{color:var(--star); animation:stardrop .45s cubic-bezier(.3,1.6,.5,1)}
+.r-star.on{color:var(--yellow); animation:stardrop .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes stardrop{0%{transform:translateY(-40px) scale(1.6); opacity:0}100%{transform:none; opacity:1}}
-.stamp{border:3px solid var(--tape); color:var(--tape); border-radius:8px; padding:3px 12px; font:400 20px/1.2 var(--f-display); transform:rotate(-8deg); letter-spacing:.06em; opacity:0}
+.stamp{border:3px solid var(--pink-deep); color:var(--pink-deep); border-radius:8px; padding:3px 12px; font:400 20px/1.2 var(--f-display); transform:rotate(-8deg); letter-spacing:.06em; opacity:0}
 :root[lang^="en"] .stamp{font-weight:800; text-transform:uppercase}
 .stamp.on{animation:stamp .35s cubic-bezier(.3,1.6,.5,1) forwards}
-@keyframes stamp{0%{opacity:0; transform:rotate(-8deg) scale(2.2)}100%{opacity:.92; transform:rotate(-8deg) scale(1)}}
+@keyframes stamp{0%{opacity:0; transform:rotate(-8deg) scale(2.2)}100%{opacity:.95; transform:rotate(-8deg) scale(1)}}
 .r-big{font:800 48px/1 var(--f-num); font-variant-numeric:tabular-nums}
-.card textarea{width:100%; resize:none; font:500 13px/1.5 var(--f-body); background:var(--field); color:var(--ink); border:1px solid var(--card-line); border-radius:10px; padding:8px 10px; text-align:left}
-.r-actions{display:flex; flex-direction:column; align-items:stretch; gap:10px; width:100%; margin-top:4px}
+.card textarea{width:100%; resize:none; font:500 13px/1.5 var(--f-body); background:var(--field); color:var(--ink); border:2px solid var(--card-line); border-radius:10px; padding:8px 10px; text-align:left}
+.r-actions{display:flex; flex-direction:column; align-items:stretch; gap:12px; width:100%; margin-top:4px}
 .r-row{display:flex; flex-wrap:wrap; justify-content:center; gap:8px}
-.btn{appearance:none; border:0; border-radius:14px; padding:11px 16px; background:var(--field); color:var(--ink); font:700 15px/1.15 var(--f-body); box-shadow:0 4px 0 var(--btn-shade); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px}
-.btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--btn-shade)}
-.btn.primary{background:var(--tape); color:var(--tape-ink); box-shadow:0 5px 0 var(--tape-dark); font:400 22px/1.1 var(--f-display); padding:14px 20px; border-radius:16px}
+.btn{appearance:none; border:3px solid var(--ink); border-radius:14px; padding:10px 16px; background:var(--field); color:var(--ink); font:700 15px/1.15 var(--f-body); box-shadow:0 4px 0 var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+.btn.primary{background:var(--pink); color:#fff; box-shadow:0 5px 0 var(--ink); font:400 22px/1.1 var(--f-display); padding:13px 20px; border-radius:16px; text-shadow:var(--outline)}
 :root[lang^="en"] .btn.primary{font-weight:800; font-size:20px}
-.btn.primary:active{box-shadow:0 1px 0 var(--tape-dark); transform:translateY(4px)}
+.btn.primary:active{box-shadow:0 1px 0 var(--ink); transform:translateY(4px)}
 .btn:disabled{opacity:.45; cursor:default; transform:none}
 .btn:focus-visible,.round:focus-visible,.tool:focus-visible .tool-ic,.hud-btn:focus-visible,.chip:focus-visible,.chip-goal:focus-visible,.mode-card:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
 .levels{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; width:100%}
-.levels .btn{flex-direction:column; gap:2px; padding:9px 0; font:800 17px/1 var(--f-num)}
+.levels .btn{flex-direction:column; gap:2px; padding:8px 0; font:800 17px/1 var(--f-num)}
 .levels .btn small{font:700 10px/1 var(--f-body); color:var(--gold-ink); letter-spacing:1px; min-height:10px}
-.levels .btn.current{background:var(--star); color:#4a2f00}
+.levels .btn.current{background:var(--yellow); color:var(--ink)}
 .levels h3{grid-column:1/-1; margin:8px 0 0; font:700 12px var(--f-body); color:var(--ink-soft); letter-spacing:.06em; text-align:left}
-.modes-list{display:flex; flex-direction:column; gap:10px; width:100%}
-.mode-card{appearance:none; border:0; display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; background:var(--field); color:var(--ink); box-shadow:0 4px 0 var(--btn-shade); cursor:pointer; text-align:left}
-.mode-card:active{transform:translateY(3px); box-shadow:0 1px 0 var(--btn-shade)}
-.mode-card.current{box-shadow:0 4px 0 var(--btn-shade),inset 0 0 0 3px var(--star)}
-.mode-card .mi{width:42px; height:42px; border-radius:12px; background:var(--tape); color:var(--tape-ink); display:grid; place-items:center; font-size:22px; flex:none}
+.modes-list{display:flex; flex-direction:column; gap:12px; width:100%}
+.mode-card{appearance:none; border:3px solid var(--ink); display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:16px; background:var(--field); color:var(--ink); box-shadow:0 4px 0 var(--ink); cursor:pointer; text-align:left}
+.mode-card:active{transform:translateY(3px); box-shadow:0 1px 0 var(--ink)}
+.mode-card.current{box-shadow:0 4px 0 var(--ink),inset 0 0 0 3px var(--pink)}
+.mode-card .mi{width:42px; height:42px; border-radius:12px; background:var(--pink); color:#fff; border:2.5px solid var(--ink); display:grid; place-items:center; font-size:22px; flex:none}
 .mode-card b{display:block; font:400 19px/1.1 var(--f-display)}
 :root[lang^="en"] .mode-card b{font-weight:800}
 .mode-card span{font-size:12.5px; color:var(--ink-soft)}
-.settings{display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%}
+.settings{display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%}
 .settings .btn{font-size:14px; padding:10px 8px}
 .ver{font-size:11px; color:var(--ink-soft)}
 
+/* 模拟广告 */
 .ad{position:fixed; inset:0; z-index:20; background:var(--overlay); display:grid; place-items:center;
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.ad-card{width:min(100%,320px); background:var(--card); border-radius:18px; padding:20px; display:flex; flex-direction:column; gap:10px; text-align:center}
-.ad-count{font:800 64px/1 var(--f-num); color:var(--tape)}
-.ad-track{height:6px; background:var(--card-line); border-radius:3px; overflow:hidden}
-#ad-bar{height:100%; width:0; background:var(--tape)}
+.ad-card{width:min(100%,320px); background:var(--card); color:var(--ink); border:4px solid var(--ink); box-shadow:0 8px 0 var(--ink); border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:10px; text-align:center}
+.ad-count{font:800 64px/1 var(--f-num); color:var(--pink); -webkit-text-stroke:2px var(--ink)}
+.ad-track{height:8px; background:var(--card-line); border-radius:4px; overflow:hidden}
+#ad-bar{height:100%; width:0; background:var(--pink)}
 .ad-card p{margin:0; font-size:13px; color:var(--ink-soft)}
+
+@keyframes bump{40%{transform:scale(1.18)}}
+@keyframes starpop{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1)}}
 
 /* 横屏（桌面网页平台的 16:9 窗口、手机横放）：左边一栏放状态栏、目标和道具，右边放整张泡泡纸，最矮要撑得住 640x360。
    泡泡纸用绝对定位贴在右边，不参与左栏的行高计算。 */
@@ -265,10 +173,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   .tools{gap:16px}
 }
 @media (prefers-reduced-motion: reduce){
-  .lv3::before,.hint::after{animation:none}
-  .sheet.shake,.sheet.shake-big{animation:none}
-  .frag{display:none}
-  .pop-text{animation-duration:.8s}
+  .card,.overlay,.tip{animation:none}
 }
 </style>
 </head>
@@ -296,8 +201,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   </div>
 
   <div class="stage" id="stage">
-    <div class="sheet" id="sheet" aria-label="泡泡纸"></div>
-    <div class="popup" id="popup" aria-live="polite"></div>
+    <div class="sheet" id="sheet" role="img" aria-label="泡泡纸"></div>
   </div>
 
   <nav class="tools" id="tools">
@@ -321,8 +225,11 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   </div>
 </div>
 
+<div id="fx" aria-hidden="true"></div>
 <script src="engine.js"></script>
 <script src="levels.js"></script>
+<script src="vendor/phaser.min.js"></script>
+<script src="view.js"></script>
 <script>
 (() => {
   const E = window.BW;
@@ -608,8 +515,8 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   function startPlay() { if (!S.playing) { S.playing = true; try { ADS.gameplayStart(); } catch (e) {} } }
   function stopPlay() { if (S.playing) { S.playing = false; try { ADS.gameplayStop(); } catch (e) {} } }
   // 广告期间：锁住所有输入（S.adPlaying），声音整个挂起
-  const mute = () => { S.adPlaying = true; setInert(); try { if (ac) ac.suspend(); } catch (e) {} };
-  const unmute = () => { S.adPlaying = false; setInert(); try { if (ac && S.sound) ac.resume(); } catch (e) {} };
+  const mute = () => { S.adPlaying = true; setInert(); SND.setMuted(true); };
+  const unmute = () => { S.adPlaying = false; setInert(); SND.setMuted(false); };
   // 同一时间只放一条广告；奖励只发给发起请求的那一局，而且那一局状态没被换掉
   function rewarded(reason, grant) {
     if (S.adPlaying) return;
@@ -729,168 +636,60 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   }
 
   // ---------- audio ----------
-  let ac = null, master = null, noiseBuf = null;
-  function ensureAudio() {
-    if (!S.sound) return;
-    try {
-      if (!ac) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        ac = new AC();
-        master = ac.createGain(); master.gain.value = 0.7; master.connect(ac.destination);
-        const len = Math.floor(ac.sampleRate * 0.12);
-        noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
-        const ch = noiseBuf.getChannelData(0);
-        for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
-      }
-      if (ac.state === 'suspended') ac.resume();
-    } catch (e) {}
-  }
-  function popSound(pitch, vol, delay) {
-    if (!ac || !S.sound || S.adPlaying) return;
-    try {
-      const t = ac.currentTime + delay;
-      const src = ac.createBufferSource(); src.buffer = noiseBuf; src.playbackRate.value = 0.85 + Math.random() * 0.3;
-      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = (1400 + Math.random() * 500) * pitch; bp.Q.value = 0.9;
-      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.9 * vol, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
-      src.connect(bp); bp.connect(g); g.connect(master); src.start(t); src.stop(t + 0.1);
-      const o = ac.createOscillator(); o.type = 'sine';
-      o.frequency.setValueAtTime(320 * pitch, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.05);
-      const og = ac.createGain(); og.gain.setValueAtTime(0.0001, t); og.gain.exponentialRampToValueAtTime(0.35 * vol, t + 0.002); og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-      o.connect(og); og.connect(master); o.start(t); o.stop(t + 0.08);
-    } catch (e) {}
-  }
-  // 拿星、盖章用的短音
-  function tone(freq, dur, vol, type, delay) {
-    if (!ac || !S.sound || S.adPlaying) return;
-    try {
-      const t = ac.currentTime + (delay || 0);
-      const o = ac.createOscillator(); o.type = type || 'triangle'; o.frequency.setValueAtTime(freq, t);
-      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
-    } catch (e) {}
-  }
-  const ding = (k) => { tone(880 * Math.pow(1.26, k), 0.22, 0.22, 'triangle'); tone(1760 * Math.pow(1.26, k), 0.12, 0.06, 'sine', 0.02); };
-  const thump = () => tone(120, 0.18, 0.4, 'sine');
+  // 声音由 view.js 里的合成器发出，这里只决定什么时候响
+  const V = window.BW_VIEW, SND = V.sound;
+  SND.setEnabled(S.sound);
+  function ensureAudio() { if (S.sound) SND.init(); }
+  const popSound = (pitch, vol, delay) => SND.pop(1, pitch, vol, delay);
+  const ding = (k) => SND.ding(k);
+  const thump = () => SND.thud();
   // 浏览器要求玩家先真正点过页面才允许震动，否则会在控制台报错
   function buzz(ms) { try { const ua = navigator.userActivation; if (navigator.vibrate && (!ua || ua.hasBeenActive)) navigator.vibrate(ms); } catch (e) {} }
 
   // ---------- board ----------
-  const sheetEl = $('sheet'), popupEl = $('popup'), panelEl = $('panel'), overlayEl = $('overlay'), stageEl = $('stage'), tipEl = $('tip');
+  // 泡泡纸由 view.js 用 Phaser 画在 #sheet 的位置上；#sheet 本身是透明的，只负责接收点击
+  const sheetEl = $('sheet'), panelEl = $('panel'), overlayEl = $('overlay'), stageEl = $('stage'), tipEl = $('tip');
   const appEl = $('app');
   // inert 会同时挡住点击、Tab 焦点和读屏，弹层或广告在的时候后面的游戏就碰不到
   function setInert() { appEl.inert = !overlayEl.hidden || S.adPlaying; }
-  let cells = [], boardKey = '', pressIdx = -1;
+  let boardKey = '', pressIdx = -1;
   function canPress(i) {
     const r = run();
-    return !S.busy && !S.ending && !S.replaying && !S.adPlaying && overlayEl.hidden && !r.over && r.kind[i] !== E.TAPE && r.lv[i] > 0;
+    return i >= 0 && !S.busy && !S.ending && !S.replaying && !S.adPlaying && overlayEl.hidden && !r.over && r.kind[i] !== E.TAPE && r.lv[i] > 0;
   }
-  function buildBoard(d) {
-    if (boardKey === d.key) return;
-    boardKey = d.key;
-    sheetEl.innerHTML = '';
-    sheetEl.style.gridTemplateColumns = `repeat(${d.cols},1fr)`;
-    document.body.style.setProperty('--ratio', (d.cols / d.rows).toFixed(4));
-    cells = [];
-    for (let i = 0; i < d.n; i++) {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'bubble';
-      b.style.setProperty('--d', (-Math.random() * 1.7).toFixed(2) + 's');
-      b.style.setProperty('--fd', (((i % d.cols) + ((i / d.cols) | 0)) * 0.025).toFixed(3) + 's');
-      const n = document.createElement('span'); n.className = 'n'; n.setAttribute('aria-hidden', 'true');
-      b.appendChild(n);
-      // 按下时泡泡先往下压，松手才"啪"：手指还在这颗泡泡上才算数
-      b.addEventListener('pointerdown', (e) => {
-        if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
-        e.preventDefault();
-        if (pressIdx >= 0 && cells[pressIdx]) cells[pressIdx].classList.remove('pressing');
-        pressIdx = -1;
-        if (!canPress(i)) return;
-        pressIdx = i; b.classList.add('pressing'); ensureAudio();
-      });
-      b.addEventListener('click', (e) => { if (e.detail === 0) onPress(i); });
-      sheetEl.appendChild(b);
-      cells.push(b);
-    }
-  }
+  // 按下时泡泡先往下压、出一点"吱"，松手才"啪"：手指还在这颗泡泡上才算数
+  sheetEl.addEventListener('pointerdown', (e) => {
+    if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    clearPress();
+    const i = V.cellAt(e.clientX, e.clientY);
+    if (!canPress(i)) return;
+    e.preventDefault();
+    pressIdx = i; V.press(i, true); ensureAudio(); SND.squeak(); buzz(6);
+  });
   document.addEventListener('pointerup', (e) => {
     if (pressIdx < 0 || !e.isPrimary) return;
     const i = pressIdx; pressIdx = -1;
-    if (!cells[i]) return;
-    cells[i].classList.remove('pressing');
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    if (el && el.closest && el.closest('.bubble') === cells[i]) onPress(i);
+    if (V.cellAt(e.clientX, e.clientY) === i && canPress(i)) { V.clearTouch(i); onPress(i); } else V.press(i, false);
   });
-  const clearPress = () => { if (pressIdx >= 0 && cells[pressIdx]) cells[pressIdx].classList.remove('pressing'); pressIdx = -1; };
+  // 电脑上鼠标移到能捏的泡泡上，泡泡微微鼓起来
+  sheetEl.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const i = V.cellAt(e.clientX, e.clientY), ok = canPress(i) ? i : -1;
+    V.hover(ok); sheetEl.style.cursor = ok >= 0 ? 'pointer' : 'default';
+  });
+  sheetEl.addEventListener('pointerleave', () => V.hover(-1));
+  const clearPress = () => { if (pressIdx >= 0) V.press(pressIdx, false); pressIdx = -1; };
   document.addEventListener('pointercancel', clearPress);
   window.addEventListener('blur', clearPress);
 
-  function paint(r, popped) {
-    buildBoard(r.d);
-    for (let i = 0; i < r.d.n; i++) {
-      const v = Math.min(3, r.lv[i]), k = r.kind[i], m = r.mark[i], b = cells[i];
-      const sig = k * 100 + m * 10 + v;
-      if (b._sig !== sig || b._lang !== S.lang) {
-        b._sig = sig; b._lang = S.lang;
-        b.classList.remove('lv0', 'lv1', 'lv2', 'lv3', 'gold', 'taped', 'got', 'lost', 'double', 'big');
-        if (k === E.TAPE) {
-          b.classList.add('taped'); b.disabled = true; b.setAttribute('aria-label', T.kindName[E.TAPE]);
-          b.firstChild.textContent = '';
-          continue;
-        }
-        b.disabled = false;
-        b.classList.add('lv' + v);
-        if (k === E.GOLD) b.classList.add('gold');
-        if (k === E.DOUBLE && v) b.classList.add('double');
-        if (k === E.BIG && v) b.classList.add('big');
-        if (m === 1) b.classList.add('got');
-        if (m === 2) b.classList.add('lost');
-        b.firstChild.textContent = v || '';
-        b.setAttribute('aria-label', v ? `${T.kindName[k]}, ${T.lvName[v]}` : (m === 1 ? T.goldGot : m === 2 ? T.goldLostAria : T.popped));
-      }
-      b.classList.toggle('hint', S.hint === i);
-    }
-    sheetEl.classList.toggle('pumping', !!r.pumping);
-    if (popped) {
-      const many = popped.length > 8;
-      popped.forEach((i, j) => { burst(cells[i]); if (!many || j % 2 === 0) frags(cells[i], r.kind[i] === E.GOLD); });
-    }
+  // popped：连锁里这一波爆掉的格子；wave：第几波（决定错开爆的节奏）
+  function paint(r, popped, wave) {
+    if (boardKey !== r.d.key) { boardKey = r.d.key; document.body.style.setProperty('--ratio', (r.d.cols / r.d.rows).toFixed(4)); }
+    V.paint(r, popped, { hint: S.hint, pumping: !!r.pumping, nums: S.nums, cleared: !!r.finaleDone, wave, coinTo: $('goal-icon') });
   }
-  function burst(b) {
-    b.classList.remove('burst'); void b.offsetWidth; b.classList.add('burst');
-    clearTimeout(b._bt); b._bt = setTimeout(() => b.classList.remove('burst'), 450);
-  }
-  // 爆开时溅出几片塑料碎片
-  function frags(b, gold) {
-    if (reduceMotion) return;
-    for (let k = 0; k < 4; k++) {
-      const f = document.createElement('span');
-      f.className = 'frag' + (gold ? ' g' : '');
-      const a = Math.random() * Math.PI * 2, dist = 18 + Math.random() * 22;
-      f.style.setProperty('--dx', (Math.cos(a) * dist).toFixed(1) + 'px');
-      f.style.setProperty('--dy', (Math.sin(a) * dist).toFixed(1) + 'px');
-      f.style.setProperty('--rot', ((Math.random() * 360) | 0) + 'deg');
-      b.appendChild(f);
-      setTimeout(() => f.remove(), 520);
-    }
-  }
-  function fresh() {
-    for (const b of cells) { b.classList.remove('fresh'); void b.offsetWidth; b.classList.add('fresh'); clearTimeout(b._ft); b._ft = setTimeout(() => b.classList.remove('fresh'), 900); }
-  }
-  function shake(big) {
-    if (reduceMotion) return;
-    sheetEl.classList.remove('shake', 'shake-big'); void sheetEl.offsetWidth;
-    sheetEl.classList.add(big ? 'shake-big' : 'shake');
-    setTimeout(() => sheetEl.classList.remove('shake', 'shake-big'), 520);
-  }
-  function popup(text, kind, small) {
-    const el = document.createElement('div');
-    el.className = 'pop-text' + (kind ? ' ' + kind : '');
-    el.textContent = text;
-    if (small) { const s = document.createElement('small'); s.textContent = small; el.appendChild(s); }
-    popupEl.appendChild(el);
-    setTimeout(() => el.remove(), kind === 'huge' ? 1450 : 1150);
-  }
+  const fresh = () => V.fresh();
+  const shake = (big) => V.shake(big);
+  const popup = (text, kind, small) => V.popup(text, kind, small);
   function showTip(text) {
     if (!text) { tipEl.hidden = true; return; }
     tipEl.textContent = text; tipEl.hidden = false;
@@ -909,7 +708,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
     $('ek-weekly').textContent = T.chipWeekly; $('ek-free').textContent = T.chipFree;
     sheetEl.setAttribute('aria-label', T.aria.sheet);
     $('ad').setAttribute('aria-label', T.aria.ad);
-    document.body.classList.toggle('show-nums', S.nums);
+    
   }
   function levelTip(def) {
     if (def.tip && T.tips[def.tip]) return T.tips[def.tip];
@@ -1050,21 +849,28 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   // 连锁过了 20 个，后面的每一波放慢一点，让大连锁有"慢镜头"的感觉
   function animatePress(r, i, done, bag) {
     const frames = E.frames(r.d, r.lv, r.kind, i);
+    const total = frames.reduce((a, f) => a + f.popped.length, 0);
     const res = { count: 0, gold: 0, direct: r.kind[i] === E.GOLD ? 1 : 0 };
     if (res.direct) r.mark[i] = 2;
+    V.origin(i);
     let t = 0, cum = 0;
     frames.forEach((f, k) => {
       cum += f.popped.length;
+      // 打击停顿：大连锁的最后一波之前顿一下
+      if (k > 0 && k === frames.length - 1 && total >= 20 && !reduceMotion) t += 170;
       const at = t;
       const id = setTimeout(() => {
         for (const p of f.gold) { r.mark[p] = 1; res.gold++; }
         r.lv = f.lv; r.kind = f.kind;
-        paint(r, f.popped);
+        paint(r, f.popped, k);
         res.count += f.popped.length;
         if (f.popped.length) {
           const loud = Math.min(3, f.popped.length);
           for (let j = 0; j < loud; j++) popSound(1 + k * 0.05, j ? 0.55 : 1, j * 0.014);
+          if (k > 0) { SND.note(k - 1, 0.09 + Math.min(0.08, f.popped.length * 0.01)); V.nudge(f.popped.length); }
           buzz(f.popped.length > 3 ? 18 : 9);
+          V.counter(res.count);
+          if (!S.replaying) setScore(r.score + E.pointsFor(res.count, res.gold));
         }
         if (k === frames.length - 1) done(res);
       }, at);
@@ -1077,8 +883,9 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
     r.used++; r.presses--; r.score += pts; r.chains.push(res.count);
     if (S.mode === 'daily' && r.saved.official == null) { r.saved.partial = { score: r.score, chains: r.chains.slice() }; store.set('bw.d.' + r.key, r.saved); }
     r.maxChain = Math.max(r.maxChain, res.count); r.gold += res.gold; r.lost += res.direct;
-    if (res.count >= 20) { popup(T.pop.chain(res.count) + '!', 'huge', `+${pts}`); shake(true); buzz(40); }
-    else if (res.count >= 10) { popup(T.pop.chain(res.count), 'big', `+${pts}`); shake(false); }
+    V.counterEnd();
+    if (res.count >= 20) { popup(T.pop.chain(res.count) + '!', 'huge', `+${pts}`); shake(true); buzz(40); SND.boom(1.2); SND.fanfare(); }
+    else if (res.count >= 10) { popup(T.pop.chain(res.count), 'big', `+${pts}`); shake(false); SND.boom(0.7); }
     else if (res.count >= 3) popup(T.pop.chain(res.count), '', `+${pts}`);
     if (res.gold) popup(T.pop.gold(res.gold, res.gold * E.GOLD_POINTS), 'gold');
     if (res.direct) popup(T.pop.goldLost, 'warn');
@@ -1139,7 +946,11 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
       if (r.score > r.best) { r.best = r.score; store.set(r.bestKey, r.best); }
     }
     S.ending = true;
-    setTimeout(() => { S.ending = false; if (run() === r && r.over && !S.replaying && overlayEl.hidden) showResult(); }, 650);
+    const show = () => { S.ending = false; if (run() === r && r.over && !S.replaying && overlayEl.hidden) showResult(); };
+    const left = [];
+    if (S.mode === 'level' && levelPassed(r) && !reduceMotion) for (let i = 0; i < r.d.n; i++) if (r.lv[i] > 0 && r.kind[i] !== E.TAPE) left.push(i);
+    if (left.length) setTimeout(() => { if (run() !== r) { show(); return; } r.finaleDone = true; V.finale(left, show); }, 650);
+    else setTimeout(show, 650);
   }
 
   // ---------- props ----------
@@ -1408,8 +1219,8 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
     const mkBtn = (label, on) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = label; b.addEventListener('click', () => on(b)); set.appendChild(b); return b; };
     mkBtn(T.menu.levels, () => showLevelPicker());
     mkBtn(T.menu.restart, () => { hidePanel(); restart(); });
-    mkBtn(T.menu.sound(S.sound), (b) => { S.sound = !S.sound; store.set('bw.sound', S.sound); if (S.sound) ensureAudio(); b.textContent = T.menu.sound(S.sound); });
-    mkBtn(T.menu.nums(S.nums), (b) => { S.nums = !S.nums; store.set('bw.nums', S.nums); document.body.classList.toggle('show-nums', S.nums); b.textContent = T.menu.nums(S.nums); });
+    mkBtn(T.menu.sound(S.sound), (b) => { S.sound = !S.sound; store.set('bw.sound', S.sound); SND.setEnabled(S.sound); if (S.sound) ensureAudio(); b.textContent = T.menu.sound(S.sound); });
+    mkBtn(T.menu.nums(S.nums), (b) => { S.nums = !S.nums; store.set('bw.nums', S.nums); paint(run()); b.textContent = T.menu.nums(S.nums); });
     const lang = mkBtn(T.menu.lang, () => setLang(S.lang === 'zh' ? 'en' : 'zh'));
     lang.style.gridColumn = '1 / -1';
     const ver = document.createElement('div'); ver.className = 'ver'; ver.textContent = (window.BW_BUILD && window.BW_BUILD.ver) || T.ver;
@@ -1439,7 +1250,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
       if (finished) return; finished = true;
       bag.forEach(clearTimeout);
       S.replaying = false; S.replayHud = null; S.replayAbort = null; S.hint = -1; tipEl.hidden = true;
-      Object.assign(r, keep); paint(r); updateHUD(true); showResult();
+      V.cancel(); Object.assign(r, keep); paint(r); updateHUD(true); showResult();
     };
     S.replayAbort = finish;
     const step = () => {
@@ -1458,6 +1269,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
       later(() => {
         S.hint = -1; ensureAudio();
         animatePress(view, i, (res) => {
+          V.counterEnd();
           score += E.pointsFor(res.count, res.gold);
           popup(T.pop.replay(k + 1, res.count), res.count >= 15 ? 'big' : '', T.pop.total(score));
           if (res.count >= 20) shake(true); else if (res.count >= 10) shake(false);
@@ -1493,7 +1305,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   function enterMode(m) {
     stopPlay();
     if (m === 'daily' && (!S.daily || S.daily.key !== utcDayKey())) startDaily();
-    cells.forEach((c) => c.classList.remove('pressing')); pressIdx = -1;
+    clearPress(); V.cancel();
     S.mode = m; S.hint = -1;
     store.set('bw.mode', m);
     hidePanel();
@@ -1559,7 +1371,7 @@ svg.ic{width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.2; 
   }
   applyStaticText();
   // 先等广告 SDK 初始化（失败或被拦截也照常进游戏），再开局并告诉平台加载完成。
-  const boot = (data) => Promise.resolve().then(() => ADS.init()).catch(() => {}).then(() => { start(data); try { ADS.loadingFinished(); } catch (e) {} });
+  const boot = (data) => Promise.resolve().then(() => ADS.init()).catch(() => {}).then(() => V.ready).then(() => { start(data); try { ADS.loadingFinished(); } catch (e) {} });
   const hot = window.claude && window.claude.hot;
   if (hot && hot.ready) hot.ready(boot); else boot(hot && hot.data ? hot.data : {});
 })();
